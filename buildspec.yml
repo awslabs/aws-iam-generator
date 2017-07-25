@@ -1,0 +1,16 @@
+# Tested using AWS CodeBuild
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - pip install troposphere
+      - pip install jinja2
+  build:
+    commands:
+      - python build.py
+
+artifacts:
+  files:
+    - output_templates/*
+  discard-paths: yes

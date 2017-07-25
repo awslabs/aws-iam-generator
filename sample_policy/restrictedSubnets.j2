@@ -1,0 +1,27 @@
+
+{
+	"Version": "2012-10-17",
+	"Statement": [
+{% for subnet in template_vars.restricted_subnets %}
+		{
+			"Sid": "RestrictSubnet{{ loop.index0 }}",
+			"Effect": "Deny",
+			"Action": [
+				"ec2:RunInstances"
+			],
+			"Condition": {
+				"ArnEquals": {
+					"ec2:Subnet": "arn:aws:ec2:*:{{ account }}:subnet/{{ subnet }}"
+				}
+			},
+			"Resource": [
+				"*"
+			]
+	{% if loop.last %}
+		}
+	{% else %}
+		},
+	{% endif %}
+{% endfor %}
+	]
+}

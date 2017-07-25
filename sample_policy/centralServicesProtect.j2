@@ -1,0 +1,87 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "ProtectCentralLambda",
+			"Effect": "Deny",
+			"NotAction": [
+				"lambda:List*"
+			],
+			"Resource": [
+				"arn:aws:lambda:*:*:function:{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectCentralEvents",
+			"Effect": "Deny",
+			"NotAction": [
+				"events:Describe*",
+				"events:List*"
+			],
+			"Resource": [
+				"arn:aws:events:*:*:rule/{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectCentralSNS",
+			"Effect": "Deny",
+			"NotAction": [
+				"sns:List*"
+			],
+			"Resource": [
+				"arn:aws:sns:*:*:{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectCentralSQS",
+			"Effect": "Deny",
+			"NotAction": [
+				"sqs:List"
+			],
+			"Resource": [
+				"arn:aws:sqs:*:*:{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectCentralCFN",
+			"Effect": "Deny",
+			"NotAction": [
+                "cloudformation:Describe*",
+                "cloudformation:List*"
+			],
+			"Resource": [
+				"arn:aws:cloudformation:*:*:stack/{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectCentralCloudTrail",
+			"Effect": "Deny",
+			"Action": [
+				"cloudtrail:*"
+			],
+			"Resource": [
+				"arn:aws:cloudtrail:*:*:trail/{{ template_vars.shared_services_prefix }}*"
+			]
+		},
+		{
+			"Sid": "ProtectConfig",
+			"Effect": "Deny",
+			"Action": [
+				"config:*"
+			],
+			"Resource": [
+				"*"
+			]
+		},
+		{
+			"Sid": "ProtectCloudWatchLogs",
+			"Effect": "Deny",
+			"NotAction": [
+				"logs:Describe*"
+			],
+			"Resource": [
+				"arn:aws:logs:*:*:log-group:{{ template_vars.shared_services_prefix }}*"
+			]
+		}	
+	]
+}

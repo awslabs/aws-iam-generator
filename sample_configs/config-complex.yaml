@@ -1,0 +1,291 @@
+global:
+  names:
+    policies: true
+    roles: True
+    users: True
+    groups: True
+  template_outputs: enabled
+
+accounts:
+  central:
+    id: 123456678910
+    parent: true
+    saml_provider: ProdADFS
+  dev1:
+    id: 109876543210
+  dev2:
+    id: 309876543210
+  prod:
+    id: 309876543210
+
+policies:
+  cloudFormationAdmin:
+    description: CloudFormation Administrator
+    policy_file: cloudFormationAdmin.j2
+    template_vars:
+      cloudformation_bucket: central-cloudformation
+  centralServicesProtect:
+    description: Central Services Resorce Protection
+    policy_file: centralServicesProtect.j2
+    template_vars:
+      shared_services_prefix: CSS
+  cloudwatchLogsWrite:
+    description: CloudWatch Logs Write
+    policy_file: cloudwatchLogsWrite.j2
+  regionRestrictions:
+    description: Restrict Region use to ca-central-1
+    policy_file: regionRestrictions.j2
+  networkRestrictions:
+    description: Prevent network related actions
+    policy_file: networkRestrictions.j2
+  baseIamUserGrants:
+    description: Grant Pass Role permission and Read access for IAM
+    policy_file: baseIamUserGrants.j2
+  configBucketPolicy:
+    description: AWS config role to write to the central bucket
+    policy_file: configBucketPolicy.j2
+    template_vars:
+      config_bucket: central-config-bucket
+  snsPublishTopic:
+    description: Allow publish to all SNS topics in account
+    policy_file: snsPublishTopic.j2
+  enterpriseSplunk:
+    description: Permissions for Splunk Enterprise based on their docs
+    policy_file: enterpriseSplunk.j2
+  restrictedSubnets:
+    description: Prevent ec2 instances from launching in public subnets
+    policy_file: restrictedSubnets.j2
+    template_vars:
+      restricted_subnets:
+        - subnet-abcd1234
+        - subnet-defg5678
+        - subnet-hijk1234
+        - subnet-qrst5678
+  protectCentralIAM:
+    description: Prevent modificaiton of Roles and Managed policies deployed via this tool
+    policy_file: protectCentralIAM.j2
+  assumePolicyAdmin:
+    description: Allow assumption of the PolicyAdmin role in all children accounts from the parent
+    assume:
+      roles:
+        - PolicyAdmin
+      accounts:
+        - all
+    in_accounts:
+      - parent
+  assumeNetworkAdmin:
+    description: Allow assumption of the NetworkAdmin role in all children accounts from the parent
+    assume:
+      roles:
+        - NetworkAdmin
+      accounts:
+        - children
+    in_accounts:
+      - parent
+  assumeAdmin:
+    description: Allow assumption of the Admin role in all children accounts from the parent
+    assume:
+      roles:
+        - Admin
+      accounts:
+        - children
+    in_accounts:
+      - parent
+  assumeDev1PowerUser:
+    description: Allow assumption of the PowerUser role in the dev2 account from the parent.
+    assume:
+      roles:
+        - PowerUser
+      accounts:
+        - dev1
+    in_accounts:
+      - parent
+  assumeDev2PowerUser:
+    description: Allow assumption of the PowerUser role in the dev1 account from the parent.
+    assume:
+      roles:
+        - PowerUser
+      accounts:
+        - dev2
+    in_accounts:
+      - parent
+
+roles:
+  PowerUser:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/PowerUserAccess
+      - protectCentralIAM
+      - centralServicesProtect
+      - regionRestrictions
+      - networkRestrictions
+      - baseIamUserGrants
+      - restrictedSubnets
+    in_accounts:
+      - all
+
+  AdminRole:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    in_accounts:
+      - all
+
+  NetworkAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - cloudFormationAdmin
+    in_accounts:
+      - all
+
+  AWS_Admins:
+    trusts:
+      - ProdADFS
+    managed_policies:
+      - assumeAdmin
+    in_accounts:
+      - parent
+
+  PolicyAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/IAMFullAccess
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - cloudFormationAdmin
+    in_accounts:
+      - all
+
+  ec2CloudWatchLogs:
+    trusts:
+      - ec2.amazonaws.com
+    managed_policies:
+      - cloudwatchLogsWrite
+    in_accounts:
+      - all
+
+  vpcFlowLogs:
+    trusts:
+      - vpc-flow-logs.amazonaws.com
+    managed_policies:
+      - cloudwatchLogsWrite
+    in_accounts:
+      - all
+
+  lambdaPolicyAudit:
+    trusts:
+      - lambda.amazonaws.com
+    managed_policies:
+      - assumePolicyAdmin
+      - cloudwatchLogsWrite
+      - snsPublishTopic
+    in_accounts:
+      - parent
+
+  lambdaSecurityGroupAudit:
+    trusts:
+      - lambda.amazonaws.com
+    managed_policies:
+      - assumeNetworkAdmin
+      - cloudwatchLogsWrite
+      - snsPublishTopic
+    in_accounts:
+      - parent
+
+  AWSConfig:
+    trusts:
+      - config.amazonaws.com
+    managed_policies:
+      - arn:aws:iam::aws:policy/service-role/AWSConfigRole
+      - configBucketPolicy
+    in_accounts:
+      - all
+
+  s3andDynamoWrite:
+    trusts:
+      - ec2.amazonaws.com
+    managed_policies:
+      - arn:aws:iam::aws:policy/AmazonS3FullAccess
+      - arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess
+      - arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess
+    in_accounts:
+      - all
+
+groups:
+  Admins:
+    managed_policies:
+      - assumeAdmin
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
+      - arn:aws:iam::aws:policy/IAMUserChangePassword
+      - arn:aws:iam::aws:policy/IAMUserSSHKeys
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+    in_accounts:
+      - parent
+  PolicyAdmins:
+    managed_policies:
+      - assumePolicyAdmin
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
+      - arn:aws:iam::aws:policy/IAMUserChangePassword
+      - arn:aws:iam::aws:policy/IAMUserSSHKeys
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+    in_accounts:
+      - parent
+  NetworkAdmins:
+    managed_policies:
+      - assumeNetworkAdmin
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
+      - arn:aws:iam::aws:policy/IAMUserChangePassword
+      - arn:aws:iam::aws:policy/IAMUserSSHKeys
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+    in_accounts:
+      - parent
+  Dev1PowerUsers:
+    managed_policies:
+      - assumeDev1PowerUser
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
+      - arn:aws:iam::aws:policy/IAMUserChangePassword
+      - arn:aws:iam::aws:policy/IAMUserSSHKeys
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+    in_accounts:
+      - parent
+  Dev2PowerUsers:
+    managed_policies:
+      - assumeDev1PowerUser
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials
+      - arn:aws:iam::aws:policy/IAMUserChangePassword
+      - arn:aws:iam::aws:policy/IAMUserSSHKeys
+      - arn:aws:iam::aws:policy/IAMReadOnlyAccess
+    in_accounts:
+      - parent
+
+users:
+  adam:
+    groups:
+      - Admins
+    in_accounts:
+      - parent
+  dev1user:
+    groups:
+      - Dev1PowerUsers
+    in_accounts:
+      - parent
+  dev2user:
+    groups:
+      - Dev2PowerUsers
+    in_accounts:
+      - parent
+  enterpriseSplunk:
+    managed_policies:
+      - enterpriseSplunk
+    in_accounts:
+      - all
