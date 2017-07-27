@@ -64,6 +64,16 @@ policies:
   protectCentralIAM:
     description: Prevent modificaiton of Roles and Managed policies deployed via this tool
     policy_file: protectCentralIAM.j2
+  AWSCloudFormationStackSetAdministration:
+    description: CloudFormation Stack Administrator Policy
+    policy_file: AWSCloudFormationStackSetAdministration.j2
+    in_accounts:
+      - parent
+  AWSCloudFormationStackSetExecution:
+    description: CloudFormation Stack Execution Policy
+    policy_file: AWSCloudFormationStackSetExecution.j2
+    in_accounts:
+      - children
   assumePolicyAdmin:
     description: Allow assumption of the PolicyAdmin role in all children accounts from the parent
     assume:
@@ -176,6 +186,23 @@ roles:
       - cloudwatchLogsWrite
     in_accounts:
       - all
+
+  AWSCloudFormationStackSetAdministrationRole:
+    decription: CloudFormation stack set administrator.
+    trusts:
+      - cloudformation.amazonaws.com
+    managed_policies:
+      - AWSCloudFormationStackSetAdministration
+    in_accounts:
+      - parent
+
+  AWSCloudFormationStackSetExecutionRole:
+    trusts:
+      - parent
+    managed_policies:
+      - AWSCloudFormationStackSetExecution
+    in_accounts:
+      - children
 
   lambdaPolicyAudit:
     trusts:
