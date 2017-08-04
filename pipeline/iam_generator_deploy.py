@@ -99,7 +99,7 @@ def deploy_stack(cfn_c, stack_name, template, capabilities=[]):
             kw_args["TemplateBody"] = template
 
         if len(capabilities) > 0:
-            kw_args["Capabilities"]=capabilities
+            kw_args["Capabilities"] = capabilities
 
         stack_exists = True
         try:
@@ -251,7 +251,7 @@ def main(event, context):
                 cfn_c,
                 os.environ["stack_name"],
                 artifacts[account_id]['template_url'],
-                [ "CAPABILITY_NAMED_IAM" ]
+                ["CAPABILITY_NAMED_IAM"]
             )
 
             waiters.append({
@@ -315,7 +315,7 @@ def outside_lambda_handler():
     # For development outside of Lambda.
     # Paste the event from codepipeline.
     event = json.loads("""
-{ "CodePipeline.job": { "data": { "artifactCredentials": { "secretAccessKey": "", "accessKeyId": "", "sessionToken": "" }, "actionConfiguration": { "configuration": { "FunctionName": "iam_generator_deploy" } }, "inputArtifacts": [ { "location": { "type": "S3", "s3Location": { "objectKey": "IAM_Generator/MyAppBuild/FxYIzbF", "bucketName": "codepipeline-us-east-1-39584551444" } }, "name": "MyAppBuild", "revision": null } ], "outputArtifacts": [] }, "id": "f7b41349-e568-4b30-8946-850cbbf14cac", "accountId": "443888193270" } }
+{ "CodePipeline.job": { "data": { "artifactCredentials": { "secretAccessKey": "", "accessKeyId": "", "sessionToken": "" }, "actionConfiguration": { "configuration": { "FunctionName": "iam_generator_deploy" } }, "inputArtifacts": [ { "location": { "type": "S3", "s3Location": { "objectKey": "", "bucketName": "" } }, "name": "MyAppBuild", "revision": null } ], "outputArtifacts": [] }, "id": "", "accountId": "" } }
     """)
 
     main(event, context)
