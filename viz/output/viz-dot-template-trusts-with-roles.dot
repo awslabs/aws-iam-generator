@@ -1,0 +1,246 @@
+digraph G {
+
+  graph [label="Account Trusts and Roles" labelloc=t fontsize=20 fontname="Verdana" rankdir="LR"];
+  node [shape=record fontsize=10 fontname="Verdana" style="filled"];
+
+
+
+    "dev2" [label="Account:\ndev2",fillcolor=orange]
+
+    
+
+      "vpc-flow-logs.amazonaws.com" [label="vpc-flow-logs.amazonaws.com", fillcolor=yellow]
+      "dev2" -> "vpc-flow-logs.amazonaws.com"
+        [label="
+          
+            vpcFlowLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "central" [label="central", fillcolor=yellow]
+      "dev2" -> "central"
+        [label="
+          
+            PowerUser
+          
+            AdminRole
+          
+            PolicyAdmin
+          
+            NetworkAdmin
+          
+            AWSCloudFormationStackSetExecutionRole
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "config.amazonaws.com" [label="config.amazonaws.com", fillcolor=yellow]
+      "dev2" -> "config.amazonaws.com"
+        [label="
+          
+            AWSConfig
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "ec2.amazonaws.com" [label="ec2.amazonaws.com", fillcolor=yellow]
+      "dev2" -> "ec2.amazonaws.com"
+        [label="
+          
+            s3andDynamoWrite
+          
+            ec2CloudWatchLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+
+
+    "dev1" [label="Account:\ndev1",fillcolor=orange]
+
+    
+
+      "vpc-flow-logs.amazonaws.com" [label="vpc-flow-logs.amazonaws.com", fillcolor=yellow]
+      "dev1" -> "vpc-flow-logs.amazonaws.com"
+        [label="
+          
+            vpcFlowLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "central" [label="central", fillcolor=yellow]
+      "dev1" -> "central"
+        [label="
+          
+            PowerUser
+          
+            AdminRole
+          
+            PolicyAdmin
+          
+            NetworkAdmin
+          
+            AWSCloudFormationStackSetExecutionRole
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "config.amazonaws.com" [label="config.amazonaws.com", fillcolor=yellow]
+      "dev1" -> "config.amazonaws.com"
+        [label="
+          
+            AWSConfig
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "ec2.amazonaws.com" [label="ec2.amazonaws.com", fillcolor=yellow]
+      "dev1" -> "ec2.amazonaws.com"
+        [label="
+          
+            s3andDynamoWrite
+          
+            ec2CloudWatchLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+
+
+    "prod" [label="Account:\nprod",fillcolor=orange]
+
+    
+
+      "vpc-flow-logs.amazonaws.com" [label="vpc-flow-logs.amazonaws.com", fillcolor=yellow]
+      "prod" -> "vpc-flow-logs.amazonaws.com"
+        [label="
+          
+            vpcFlowLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "central" [label="central", fillcolor=yellow]
+      "prod" -> "central"
+        [label="
+          
+            PowerUser
+          
+            AdminRole
+          
+            PolicyAdmin
+          
+            NetworkAdmin
+          
+            AWSCloudFormationStackSetExecutionRole
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "config.amazonaws.com" [label="config.amazonaws.com", fillcolor=yellow]
+      "prod" -> "config.amazonaws.com"
+        [label="
+          
+            AWSConfig
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "ec2.amazonaws.com" [label="ec2.amazonaws.com", fillcolor=yellow]
+      "prod" -> "ec2.amazonaws.com"
+        [label="
+          
+            s3andDynamoWrite
+          
+            ec2CloudWatchLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+
+
+    "central" [label="Account:\ncentral",fillcolor=orange]
+
+    
+
+      "config.amazonaws.com" [label="config.amazonaws.com", fillcolor=yellow]
+      "central" -> "config.amazonaws.com"
+        [label="
+          
+            AWSConfig
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "vpc-flow-logs.amazonaws.com" [label="vpc-flow-logs.amazonaws.com", fillcolor=yellow]
+      "central" -> "vpc-flow-logs.amazonaws.com"
+        [label="
+          
+            vpcFlowLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "ec2.amazonaws.com" [label="ec2.amazonaws.com", fillcolor=yellow]
+      "central" -> "ec2.amazonaws.com"
+        [label="
+          
+            s3andDynamoWrite
+          
+            ec2CloudWatchLogs
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "cloudformation.amazonaws.com" [label="cloudformation.amazonaws.com", fillcolor=yellow]
+      "central" -> "cloudformation.amazonaws.com"
+        [label="
+          
+            AWSCloudFormationStackSetAdministrationRole
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "ProdADFS" [label="ProdADFS", fillcolor=yellow]
+      "central" -> "ProdADFS"
+        [label="
+          
+            AWS_Admins
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+      "lambda.amazonaws.com" [label="lambda.amazonaws.com", fillcolor=yellow]
+      "central" -> "lambda.amazonaws.com"
+        [label="
+          
+            lambdaSecurityGroupAudit
+          
+            lambdaPolicyAudit
+          
+        " labeltooltip="this is a tooltip"]
+
+    
+
+
+
+}

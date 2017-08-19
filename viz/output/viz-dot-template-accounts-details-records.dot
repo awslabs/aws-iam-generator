@@ -1,0 +1,988 @@
+digraph G {
+
+  graph [label="Account Details (Records)" labelloc=t fontsize=20 fontname="Verdana" rankdir="LR"];
+  node [shape=record fontsize=10 fontname="Verdana" style="filled"];
+
+
+
+    subgraph cluster_dev2 {
+      label = "dev2"
+
+      
+
+      
+
+        subgraph cluster_dev2_vpcFlowLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: vpcFlowLogs"
+
+          dev2_vpcFlowLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_vpcFlowLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_s3andDynamoWrite {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: s3andDynamoWrite"
+
+          dev2_s3andDynamoWrite_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess> arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess  }
+          
+              | { <dev2_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess> arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess  }
+          
+              | { <dev2_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonS3FullAccess> arn:aws:iam::aws:policy/AmazonS3FullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_PowerUser {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PowerUser"
+
+          dev2_PowerUser_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_PowerUser_baseIamUserGrants> baseIamUserGrants  }
+          
+              | { <dev2_PowerUser_protectCentralIAM> protectCentralIAM  }
+          
+              | { <dev2_PowerUser_regionRestrictions> regionRestrictions  }
+          
+              | { <dev2_PowerUser_restrictedSubnets> restrictedSubnets  }
+          
+              | { <dev2_PowerUser_centralServicesProtect> centralServicesProtect  }
+          
+              | { <dev2_PowerUser_networkRestrictions> networkRestrictions  }
+          
+              | { <dev2_PowerUser_arn:aws:iam::aws:policy/PowerUserAccess> arn:aws:iam::aws:policy/PowerUserAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_AdminRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AdminRole"
+
+          dev2_AdminRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_AdminRole_arn:aws:iam::aws:policy/AdministratorAccess> arn:aws:iam::aws:policy/AdministratorAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_ec2CloudWatchLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: ec2CloudWatchLogs"
+
+          dev2_ec2CloudWatchLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_ec2CloudWatchLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_PolicyAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PolicyAdmin"
+
+          dev2_PolicyAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_PolicyAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          
+              | { <dev2_PolicyAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <dev2_PolicyAdmin_arn:aws:iam::aws:policy/IAMFullAccess> arn:aws:iam::aws:policy/IAMFullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_NetworkAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: NetworkAdmin"
+
+          dev2_NetworkAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_NetworkAdmin_arn:aws:iam::aws:policy/job-function/NetworkAdministrator> arn:aws:iam::aws:policy/job-function/NetworkAdministrator  }
+          
+              | { <dev2_NetworkAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <dev2_NetworkAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_AWSConfig {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSConfig"
+
+          dev2_AWSConfig_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_AWSConfig_configBucketPolicy> configBucketPolicy  }
+          
+              | { <dev2_AWSConfig_arn:aws:iam::aws:policy/service-role/AWSConfigRole> arn:aws:iam::aws:policy/service-role/AWSConfigRole  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev2_AWSCloudFormationStackSetExecutionRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSCloudFormationStackSetExecutionRole"
+
+          dev2_AWSCloudFormationStackSetExecutionRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev2_AWSCloudFormationStackSetExecutionRole_AWSCloudFormationStackSetExecution> AWSCloudFormationStackSetExecution  }
+          "]
+
+        }
+
+      
+
+    }
+
+
+
+    subgraph cluster_dev1 {
+      label = "dev1"
+
+      
+
+      
+
+        subgraph cluster_dev1_vpcFlowLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: vpcFlowLogs"
+
+          dev1_vpcFlowLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_vpcFlowLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_s3andDynamoWrite {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: s3andDynamoWrite"
+
+          dev1_s3andDynamoWrite_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess> arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess  }
+          
+              | { <dev1_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess> arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess  }
+          
+              | { <dev1_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonS3FullAccess> arn:aws:iam::aws:policy/AmazonS3FullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_PowerUser {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PowerUser"
+
+          dev1_PowerUser_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_PowerUser_baseIamUserGrants> baseIamUserGrants  }
+          
+              | { <dev1_PowerUser_protectCentralIAM> protectCentralIAM  }
+          
+              | { <dev1_PowerUser_regionRestrictions> regionRestrictions  }
+          
+              | { <dev1_PowerUser_restrictedSubnets> restrictedSubnets  }
+          
+              | { <dev1_PowerUser_centralServicesProtect> centralServicesProtect  }
+          
+              | { <dev1_PowerUser_networkRestrictions> networkRestrictions  }
+          
+              | { <dev1_PowerUser_arn:aws:iam::aws:policy/PowerUserAccess> arn:aws:iam::aws:policy/PowerUserAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_AdminRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AdminRole"
+
+          dev1_AdminRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_AdminRole_arn:aws:iam::aws:policy/AdministratorAccess> arn:aws:iam::aws:policy/AdministratorAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_ec2CloudWatchLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: ec2CloudWatchLogs"
+
+          dev1_ec2CloudWatchLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_ec2CloudWatchLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_PolicyAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PolicyAdmin"
+
+          dev1_PolicyAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_PolicyAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          
+              | { <dev1_PolicyAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <dev1_PolicyAdmin_arn:aws:iam::aws:policy/IAMFullAccess> arn:aws:iam::aws:policy/IAMFullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_NetworkAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: NetworkAdmin"
+
+          dev1_NetworkAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_NetworkAdmin_arn:aws:iam::aws:policy/job-function/NetworkAdministrator> arn:aws:iam::aws:policy/job-function/NetworkAdministrator  }
+          
+              | { <dev1_NetworkAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <dev1_NetworkAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_AWSConfig {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSConfig"
+
+          dev1_AWSConfig_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_AWSConfig_configBucketPolicy> configBucketPolicy  }
+          
+              | { <dev1_AWSConfig_arn:aws:iam::aws:policy/service-role/AWSConfigRole> arn:aws:iam::aws:policy/service-role/AWSConfigRole  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_dev1_AWSCloudFormationStackSetExecutionRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSCloudFormationStackSetExecutionRole"
+
+          dev1_AWSCloudFormationStackSetExecutionRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <dev1_AWSCloudFormationStackSetExecutionRole_AWSCloudFormationStackSetExecution> AWSCloudFormationStackSetExecution  }
+          "]
+
+        }
+
+      
+
+    }
+
+
+
+    subgraph cluster_prod {
+      label = "prod"
+
+      
+
+      
+
+        subgraph cluster_prod_vpcFlowLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: vpcFlowLogs"
+
+          prod_vpcFlowLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_vpcFlowLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_s3andDynamoWrite {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: s3andDynamoWrite"
+
+          prod_s3andDynamoWrite_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess> arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess  }
+          
+              | { <prod_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess> arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess  }
+          
+              | { <prod_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonS3FullAccess> arn:aws:iam::aws:policy/AmazonS3FullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_PowerUser {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PowerUser"
+
+          prod_PowerUser_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_PowerUser_baseIamUserGrants> baseIamUserGrants  }
+          
+              | { <prod_PowerUser_protectCentralIAM> protectCentralIAM  }
+          
+              | { <prod_PowerUser_regionRestrictions> regionRestrictions  }
+          
+              | { <prod_PowerUser_restrictedSubnets> restrictedSubnets  }
+          
+              | { <prod_PowerUser_centralServicesProtect> centralServicesProtect  }
+          
+              | { <prod_PowerUser_networkRestrictions> networkRestrictions  }
+          
+              | { <prod_PowerUser_arn:aws:iam::aws:policy/PowerUserAccess> arn:aws:iam::aws:policy/PowerUserAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_AdminRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AdminRole"
+
+          prod_AdminRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_AdminRole_arn:aws:iam::aws:policy/AdministratorAccess> arn:aws:iam::aws:policy/AdministratorAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_ec2CloudWatchLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: ec2CloudWatchLogs"
+
+          prod_ec2CloudWatchLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_ec2CloudWatchLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_PolicyAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PolicyAdmin"
+
+          prod_PolicyAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_PolicyAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          
+              | { <prod_PolicyAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <prod_PolicyAdmin_arn:aws:iam::aws:policy/IAMFullAccess> arn:aws:iam::aws:policy/IAMFullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_NetworkAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: NetworkAdmin"
+
+          prod_NetworkAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_NetworkAdmin_arn:aws:iam::aws:policy/job-function/NetworkAdministrator> arn:aws:iam::aws:policy/job-function/NetworkAdministrator  }
+          
+              | { <prod_NetworkAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <prod_NetworkAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_AWSConfig {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSConfig"
+
+          prod_AWSConfig_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_AWSConfig_configBucketPolicy> configBucketPolicy  }
+          
+              | { <prod_AWSConfig_arn:aws:iam::aws:policy/service-role/AWSConfigRole> arn:aws:iam::aws:policy/service-role/AWSConfigRole  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_prod_AWSCloudFormationStackSetExecutionRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSCloudFormationStackSetExecutionRole"
+
+          prod_AWSCloudFormationStackSetExecutionRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <prod_AWSCloudFormationStackSetExecutionRole_AWSCloudFormationStackSetExecution> AWSCloudFormationStackSetExecution  }
+          "]
+
+        }
+
+      
+
+    }
+
+
+
+    subgraph cluster_central {
+      label = "central"
+
+      
+
+        subgraph cluster_central_Admins {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: Admins"
+
+          central_Admins_users [fillcolor=yellow
+          label="Users
+          
+              | { <central_Admins_adam> adam }
+          "]
+
+          central_Admins_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_Admins_assumeAdmin> assumeAdmin  (assume)  }
+          
+              | { <central_Admins_arn:aws:iam::aws:policy/IAMReadOnlyAccess> arn:aws:iam::aws:policy/IAMReadOnlyAccess  }
+          
+              | { <central_Admins_arn:aws:iam::aws:policy/IAMUserChangePassword> arn:aws:iam::aws:policy/IAMUserChangePassword  }
+          
+              | { <central_Admins_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_Admins_arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials> arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials  }
+          
+              | { <central_Admins_arn:aws:iam::aws:policy/IAMUserSSHKeys> arn:aws:iam::aws:policy/IAMUserSSHKeys  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_NetworkAdmins {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: NetworkAdmins"
+
+          central_NetworkAdmins_users [fillcolor=yellow
+          label="Users
+          "]
+
+          central_NetworkAdmins_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_NetworkAdmins_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_NetworkAdmins_arn:aws:iam::aws:policy/IAMReadOnlyAccess> arn:aws:iam::aws:policy/IAMReadOnlyAccess  }
+          
+              | { <central_NetworkAdmins_arn:aws:iam::aws:policy/IAMUserChangePassword> arn:aws:iam::aws:policy/IAMUserChangePassword  }
+          
+              | { <central_NetworkAdmins_arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials> arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials  }
+          
+              | { <central_NetworkAdmins_assumeNetworkAdmin> assumeNetworkAdmin  (assume)  }
+          
+              | { <central_NetworkAdmins_arn:aws:iam::aws:policy/IAMUserSSHKeys> arn:aws:iam::aws:policy/IAMUserSSHKeys  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_Dev1PowerUsers {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: Dev1PowerUsers"
+
+          central_Dev1PowerUsers_users [fillcolor=yellow
+          label="Users
+          
+              | { <central_Dev1PowerUsers_dev1user> dev1user }
+          "]
+
+          central_Dev1PowerUsers_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_Dev1PowerUsers_arn:aws:iam::aws:policy/IAMReadOnlyAccess> arn:aws:iam::aws:policy/IAMReadOnlyAccess  }
+          
+              | { <central_Dev1PowerUsers_arn:aws:iam::aws:policy/IAMUserChangePassword> arn:aws:iam::aws:policy/IAMUserChangePassword  }
+          
+              | { <central_Dev1PowerUsers_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_Dev1PowerUsers_assumeDev1PowerUser> assumeDev1PowerUser  (assume)  }
+          
+              | { <central_Dev1PowerUsers_arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials> arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials  }
+          
+              | { <central_Dev1PowerUsers_arn:aws:iam::aws:policy/IAMUserSSHKeys> arn:aws:iam::aws:policy/IAMUserSSHKeys  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_PolicyAdmins {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: PolicyAdmins"
+
+          central_PolicyAdmins_users [fillcolor=yellow
+          label="Users
+          "]
+
+          central_PolicyAdmins_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_PolicyAdmins_assumePolicyAdmin> assumePolicyAdmin  (assume)  }
+          
+              | { <central_PolicyAdmins_arn:aws:iam::aws:policy/IAMReadOnlyAccess> arn:aws:iam::aws:policy/IAMReadOnlyAccess  }
+          
+              | { <central_PolicyAdmins_arn:aws:iam::aws:policy/IAMUserChangePassword> arn:aws:iam::aws:policy/IAMUserChangePassword  }
+          
+              | { <central_PolicyAdmins_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_PolicyAdmins_arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials> arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials  }
+          
+              | { <central_PolicyAdmins_arn:aws:iam::aws:policy/IAMUserSSHKeys> arn:aws:iam::aws:policy/IAMUserSSHKeys  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_Dev2PowerUsers {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: Dev2PowerUsers"
+
+          central_Dev2PowerUsers_users [fillcolor=yellow
+          label="Users
+          
+              | { <central_Dev2PowerUsers_dev2user> dev2user }
+          "]
+
+          central_Dev2PowerUsers_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_Dev2PowerUsers_arn:aws:iam::aws:policy/IAMReadOnlyAccess> arn:aws:iam::aws:policy/IAMReadOnlyAccess  }
+          
+              | { <central_Dev2PowerUsers_arn:aws:iam::aws:policy/IAMUserChangePassword> arn:aws:iam::aws:policy/IAMUserChangePassword  }
+          
+              | { <central_Dev2PowerUsers_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_Dev2PowerUsers_assumeDev1PowerUser> assumeDev1PowerUser  (assume)  }
+          
+              | { <central_Dev2PowerUsers_arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials> arn:aws:iam::aws:policy/IAMSelfManageServiceSpecificCredentials  }
+          
+              | { <central_Dev2PowerUsers_arn:aws:iam::aws:policy/IAMUserSSHKeys> arn:aws:iam::aws:policy/IAMUserSSHKeys  }
+          "]
+
+        }
+
+      
+
+      
+
+        subgraph cluster_central_vpcFlowLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: vpcFlowLogs"
+
+          central_vpcFlowLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_vpcFlowLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_AdminRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AdminRole"
+
+          central_AdminRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_AdminRole_arn:aws:iam::aws:policy/AdministratorAccess> arn:aws:iam::aws:policy/AdministratorAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_s3andDynamoWrite {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: s3andDynamoWrite"
+
+          central_s3andDynamoWrite_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess> arn:aws:iam::aws:policy/AmazonElasticMapReduceFullAccess  }
+          
+              | { <central_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess> arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess  }
+          
+              | { <central_s3andDynamoWrite_arn:aws:iam::aws:policy/AmazonS3FullAccess> arn:aws:iam::aws:policy/AmazonS3FullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_lambdaSecurityGroupAudit {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: lambdaSecurityGroupAudit"
+
+          central_lambdaSecurityGroupAudit_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_lambdaSecurityGroupAudit_snsPublishTopic> snsPublishTopic  }
+          
+              | { <central_lambdaSecurityGroupAudit_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          
+              | { <central_lambdaSecurityGroupAudit_assumeNetworkAdmin> assumeNetworkAdmin  (assume)  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_PowerUser {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PowerUser"
+
+          central_PowerUser_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_PowerUser_baseIamUserGrants> baseIamUserGrants  }
+          
+              | { <central_PowerUser_protectCentralIAM> protectCentralIAM  }
+          
+              | { <central_PowerUser_regionRestrictions> regionRestrictions  }
+          
+              | { <central_PowerUser_restrictedSubnets> restrictedSubnets  }
+          
+              | { <central_PowerUser_centralServicesProtect> centralServicesProtect  }
+          
+              | { <central_PowerUser_networkRestrictions> networkRestrictions  }
+          
+              | { <central_PowerUser_arn:aws:iam::aws:policy/PowerUserAccess> arn:aws:iam::aws:policy/PowerUserAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_AWS_Admins {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWS_Admins"
+
+          central_AWS_Admins_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_AWS_Admins_assumeAdmin> assumeAdmin  (assume)  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_lambdaPolicyAudit {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: lambdaPolicyAudit"
+
+          central_lambdaPolicyAudit_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_lambdaPolicyAudit_assumePolicyAdmin> assumePolicyAdmin  (assume)  }
+          
+              | { <central_lambdaPolicyAudit_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          
+              | { <central_lambdaPolicyAudit_snsPublishTopic> snsPublishTopic  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_ec2CloudWatchLogs {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: ec2CloudWatchLogs"
+
+          central_ec2CloudWatchLogs_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_ec2CloudWatchLogs_cloudwatchLogsWrite> cloudwatchLogsWrite  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_PolicyAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: PolicyAdmin"
+
+          central_PolicyAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_PolicyAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          
+              | { <central_PolicyAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_PolicyAdmin_arn:aws:iam::aws:policy/IAMFullAccess> arn:aws:iam::aws:policy/IAMFullAccess  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_AWSCloudFormationStackSetAdministrationRole {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSCloudFormationStackSetAdministrationRole"
+
+          central_AWSCloudFormationStackSetAdministrationRole_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_AWSCloudFormationStackSetAdministrationRole_AWSCloudFormationStackSetAdministration> AWSCloudFormationStackSetAdministration  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_NetworkAdmin {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: NetworkAdmin"
+
+          central_NetworkAdmin_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_NetworkAdmin_arn:aws:iam::aws:policy/job-function/NetworkAdministrator> arn:aws:iam::aws:policy/job-function/NetworkAdministrator  }
+          
+              | { <central_NetworkAdmin_arn:aws:iam::aws:policy/ReadOnlyAccess> arn:aws:iam::aws:policy/ReadOnlyAccess  }
+          
+              | { <central_NetworkAdmin_cloudFormationAdmin> cloudFormationAdmin  }
+          "]
+
+        }
+
+      
+
+        subgraph cluster_central_AWSConfig {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: AWSConfig"
+
+          central_AWSConfig_policies [fillcolor=green
+          label="Policies
+          
+              | { <central_AWSConfig_configBucketPolicy> configBucketPolicy  }
+          
+              | { <central_AWSConfig_arn:aws:iam::aws:policy/service-role/AWSConfigRole> arn:aws:iam::aws:policy/service-role/AWSConfigRole  }
+          "]
+
+        }
+
+      
+
+    }
+
+
+
+}

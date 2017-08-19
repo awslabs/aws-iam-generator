@@ -18,7 +18,7 @@ Everything is driven by the config.yaml file.  In this file you describe your ac
 
 Managed policy json structure is kept in [jinja2 templates](http://jinja.pocoo.org/docs/2.9/) files to allow for variable substitution for specific customization of ARNs and trusts etc.
 
-When build.py is executed a CloudFormation template is built per account.  They are availble in the output_templates directory to be uploaded to [CloudFormation](https://aws.amazon.com/cloudformation/) for deployment in each account.
+When build.py is executed a CloudFormation template is built per account.  They are available in the output_templates directory to be uploaded to [CloudFormation](https://aws.amazon.com/cloudformation/) for deployment in each account.
 
 This project wouldn't be possible without the hard work done by the [Troposphere](https://github.com/cloudtools/troposphere) and [Jinja](https://github.com/pallets/jinja) project teams.  Thanks!
 
@@ -43,7 +43,7 @@ groups:
 
 ### `global:` section
 
-Controls our our genereated templates behaviour.  There are two key sections.  `names:` and `template_outputs`.
+Controls our generated templates behaviour.  There are two key sections.  `names:` and `template_outputs`.
 
 The `names:` section looks like this:
 
@@ -67,7 +67,7 @@ policies:
     policy_file: cloudFormationAdmin.j2
 ```
 
-if `polices: True` is set, the name of the managed policy that CloudFormation creates will be `cloudFormationAdmin`.  If `polices: False` then CloudFormation will generate a unique value using the stack prefix and a suffix eg: `PolicyStack-cloudFormationAdmin-ACH753NADF`.
+if `policies: True` is set, the name of the managed policy that CloudFormation creates will be `cloudFormationAdmin`.  If `polices: False` then CloudFormation will generate a unique value using the stack prefix and a suffix eg: `PolicyStack-cloudFormationAdmin-ACH753NADF`.
 
 If the `global:` section is omitted, it will function with the following default values:
 
@@ -137,7 +137,7 @@ policies:
 
 This will create a managed policy with the name cloudFormationAdmin (along with the prefix and suffix that CloudFormation Adds automatically).  It will base the policy document on the contents of of the cloudFormationAdmin.j2 jinja2 template.  It will be placed into the accounts 123456678910 (which is our `parent`) as well as accounts 109876543210 and 309876543210 because their friendly names (`dev1` and `dev2`) match our regular expression `dev.*`.
 
-Lets disect this a bit.
+Lets dissect this a bit.
 
 `policies:` is a dictionary of policy names.  This assures they are kept unique within the account and generated CloudFormation template.
 
@@ -221,17 +221,17 @@ This will create this policy document . . .
   {   
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::109876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::109876543210:role/Admin"
   },
   {   
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::309876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::309876543210:role/Admin"
   },
   {   
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::209876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::209876543210:role/Admin"
   },
 ]
 ```
@@ -402,7 +402,7 @@ Default value is `retain_on_delete: false` which does not need to be explicitly 
 
 ### Importing resources from other templates
 
-You are able to specify the keyword of `import:` within the config.yaml file.  Use this for managed_policies, users, groups, or roles. This will substiute the appropraite [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
+You are able to specify the keyword of `import:` within the config.yaml file.  Use this for managed_policies, users, groups, or roles. This will substiute the appropriate [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
 
 Example of an import for a role:
 
@@ -416,3 +416,114 @@ roles:
     in_accounts:
       - all
 ```
+## Visualization
+
+There's a visualization generator script under directory viz/ that generates
+.dot files (http://www.graphviz.org/content/dot-language) for nice visualizations
+of your accounts' configuration and resources.
+
+Get started by downloading the required python packages:
+
+```
+ cd viz/
+ pip install -r requirements.txt
+```
+
+The generator (viz.py) takes 3 input parameters:
+
+* config_file: any of your aws-iam-generator configuration file (see ../sample_configs/config-complex.yaml for an example)
+* viz_file: choose from multiple jinja2 templates for different types of visualizations (eg, viz/viz-dot-template-trusts) or create your own!
+* output_file: give a name to the output .dot file to be generated
+
+For help, type:
+
+```bash
+python viz.py --help
+```
+
+You can run the visualizations like this:
+
+```
+cd viz/
+python viz.py ../sample_configs/config-complex.yaml templates/viz-dot-template-trusts.j2 output/viz-dot-template-trusts.dot
+```
+
+This will generate the output.dot file with a visualization of the "account trusted resources".
+
+If you have graphviz/dot installed here's a single-liner:
+
+```
+ python viz.py ../sample_configs/config-complex.yaml \
+   templates/viz-dot-template-trusts.j2 \
+   output/viz-dot-template-trusts.dot \
+ && dot -Tpng output/viz-dot-template-trusts.dot \
+   -o output/viz-dot-template-trusts.png \
+ && open output/viz-dot-template-trusts.png
+```
+
+You can use different layout algorithms in Dot using the -K option for better visualizations. Please check http://www.graphviz.org/ for further details.
+
+Check out some visualizations (PNG files) under viz/output generated through the following commands:
+
+### Accounts and Trusts
+
+Template File: templates/viz-dot-template-trusts.j2
+
+```bash
+ export config_file="../sample_configs/config-complex.yaml"
+ export viz_file_prefix="viz-dot-template-trusts"
+
+ python viz.py "$config_file" \
+   "templates/$viz_file_prefix.j2" "output/$viz_file_prefix.dot" \
+   && dot -Tpng "output/$viz_file_prefix.dot" -o "output/$viz_file_prefix.png" \
+   && open "output/$viz_file_prefix.png"
+```
+
+### Accounts, Trusts and Roles
+
+Template File: templates/viz-dot-template-trusts-with-roles.j2
+
+```bash
+ export config_file="../sample_configs/config-complex.yaml"
+ export viz_file_prefix="viz-dot-template-trusts-with-roles"
+
+ python viz.py "$config_file" \
+   "templates/$viz_file_prefix.j2" "output/$viz_file_prefix.dot" \
+   && dot -Tpng "output/$viz_file_prefix.dot" -o "output/$viz_file_prefix.png" \
+   && open "output/$viz_file_prefix.png"
+```
+
+### Accounts Details (records)
+
+Template File: templates/viz-dot-template-accounts-details-records.j2
+
+```bash
+ export config_file="../sample_configs/config-complex.yaml"
+ export viz_file_prefix="viz-dot-template-accounts-details-records"
+
+ python viz.py "$config_file" \
+   "templates/$viz_file_prefix.j2" "output/$viz_file_prefix.dot" \
+   && dot -Tpng "output/$viz_file_prefix.dot" -o "output/$viz_file_prefix.png" \
+   && open "output/$viz_file_prefix.png"
+```
+
+### Account Details (graph)
+
+Template File: templates/viz-dot-template-accounts-details-graph.j2
+
+```bash
+ export config_file="../sample_configs/config-complex.yaml"
+ export viz_file_prefix="viz-dot-template-accounts-details-graph"
+
+ python viz.py "$config_file" \
+   "templates/$viz_file_prefix.j2" "output/$viz_file_prefix.dot" \
+   && dot -K circo -Tpng "output/$viz_file_prefix.dot" -o "output/$viz_file_prefix.png" \
+   && open "output/$viz_file_prefix.png"
+```
+
+__Note__ the -K option here to use the 'circo' layout algorithm.
+
+### Creating new visualizations
+
+New visualizations can be easily created by creating  new jinja2 templates under viz/templates/ that will be used to generate new
+.dot files. The 'config' object created in viz.py is exposed to the templates which consists of a collection of all other relevant objects including accounts, groups, roles, users, policies, and trusts.
