@@ -103,7 +103,6 @@ def build_role_trust(c, trusts):
     web_principals = []
 
     for trust in trusts:
-        print "Testing against '{}'".format(trust)
         # See if we match an account:
         # First see if we match an account friendly name.
         trust_account = c.search_accounts([trust])
@@ -134,8 +133,10 @@ def build_role_trust(c, trusts):
         # Otherwise raise a value-error
         else:
             raise ValueError(
-                "Unable to find trust name '{}' in the config.yaml. "
-                "Assure it exists in the account section.".format(
+                "Trust name '{}' in the config.yaml does not appear to be "
+                "valid.  Confirm it is a valid AWS Principal ARN / AWS "
+                "Service Principal or an Account Name / SAML Provider "
+                "contained in the config.yaml".format(
                     trust
                 )
             )
