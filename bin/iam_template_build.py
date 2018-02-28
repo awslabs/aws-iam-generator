@@ -90,55 +90,82 @@ def build_role_trust(c, trusts):
         "Statement": [],
     }
 
-    sts_principals = []
+    valid_web_principals = [
+        "cognito-identity.amazonaws.com",
+        "www.amazon.com",
+        "graph.facebook.com",
+        "accounts.google.com",
+    ]
+
+    service_principals = []
+    aws_principals = []
     saml_principals = []
+    web_principals = []
+
     for trust in trusts:
+        print "Testing against '{}'".format(trust)
         # See if we match an account:
         # First see if we match an account friendly name.
         trust_account = c.search_accounts([trust])
         if trust_account:
-            sts_principals.append({
-                "AWS": "arn:aws:iam::" +
-                       str(c.account_map_ids[trust_account[0]]) +
-                       ":root"
-            })
+            aws_principals.append(
+                "arn:aws:iam::"
+                + str(c.account_map_ids[trust_account[0]])
+                + ":root"
+            )
         # Next see if we match our SAML trust.
         elif trust == c.saml_provider:
-            saml_principals.append({
-                "Federated": "arn:aws:iam::" +
-                             c.parent_account_id +
-                             ":saml-provider/" +
-                             c.saml_provider
-            })
-        # See if we have a 'dot' in our name denoting a service.
-        elif re.match("^.*\..*?$", trust):
-            sts_principals.append({"Service": trust})
-        # otherwise this is likely an account friendly name that isn't correct.
+            saml_principals.append(
+                "arn:aws:iam::"
+                + c.parent_account_id
+                + ":saml-provider/"
+                + c.saml_provider
+            )
+        # See if we match a user or role ARN Principal
+        elif re.match("arn:aws:iam::\d{12}:(user|role)/.*?", trust) or \
+                re.match("arn:aws:sts::\d{12}:assumed-role/.*?/.*?", trust):
+            aws_principals.append(trust)
+        # See if we have a service
+        elif re.match("^.*\.amazonaws\.com$", trust):
+            service_principals.append(trust)
+        # See if we have a web federation principal
+        elif trust in valid_web_principals:
+            web_principals.append(trust)
+        # Otherwise raise a value-error
         else:
             raise ValueError(
-                "Uanble to find trust name '{}' in the config.yaml. "
+                "Unable to find trust name '{}' in the config.yaml. "
                 "Assure it exists in the account section.".format(
                     trust
                 )
             )
 
-    for sts_principal in sts_principals:
+    if aws_principals:
         policy["Statement"].append({
             "Effect": "Allow",
-            "Principal": sts_principal,
+            "Principal": {"AWS": aws_principals},
             "Action": "sts:AssumeRole"
         })
 
-    for saml_principal in saml_principals:
+    if service_principals:
         policy["Statement"].append({
             "Effect": "Allow",
-            "Principal": saml_principal,
+            "Principal": {"Service": service_principals},
+            "Action": "sts:AssumeRole"
+        })
+
+    if saml_principals:
+        policy["Statement"].append({
+            "Effect": "Allow",
+            "Principal": {"Federated": saml_principals},
             "Action": "sts:AssumeRoleWithSAML",
-            "Condition": {
-                "StringEquals": {
-                    "SAML:aud": "https://signin.aws.amazon.com/saml"
-                }
-            }
+        })
+
+    if web_principals:
+        policy["Statement"].append({
+            "Effect": "Allow",
+            "Principal": {"Federated": web_principals},
+            "Action": "sts:AssumeRoleWithWebIdentity"
         })
 
     return(policy)
