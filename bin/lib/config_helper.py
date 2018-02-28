@@ -95,10 +95,10 @@ class config(object):
         # We permit a few special keywords to make our users lives easier.
         for pattern in pattern_list:
             found = False
-            # If our pattern is a service name (denoted by a dot) we will
-            # not raise an exception about an invalid account
+            # If our pattern is a service name or ARN (denoted by a dot or 
+            # Colon we will not raise an exception about an invalid account
             # but we won't populate our matched list.
-            if '.' in pattern:
+            if '.' in pattern or ':' in pattern:
                 found = True
             # If our pattern is a SAML provider we will not raise an exception
             # but won't populate a match.
