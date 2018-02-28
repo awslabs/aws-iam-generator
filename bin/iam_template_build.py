@@ -105,12 +105,26 @@ def build_role_trust(c, trusts):
     for trust in trusts:
         # See if we match an account:
         # First see if we match an account friendly name.
-        trust_account = c.search_accounts([trust])
+        trust_account = ""
+        try:
+            trust_account = c.search_accounts([trust])
+        except Exception:
+            pass
         if trust_account:
             aws_principals.append(
                 "arn:aws:iam::"
                 + str(c.account_map_ids[trust_account[0]])
                 + ":root"
+            )
+        # See if this is a user inside the template
+        elif c.is_local_user(trust):
+            aws_principals.append(
+                GetAtt(scrub_name("{}User".format(trust)), "Arn")
+            )
+        # See if this is a role inside the template
+        elif c.is_local_role(trust):
+            aws_principals.append(
+                GetAtt(scrub_name("{}Role".format(trust)), "Arn")
             )
         # Next see if we match our SAML trust.
         elif trust == c.saml_provider:
@@ -242,16 +256,22 @@ def parse_managed_policies(c, managed_policies, working_on):
     return(managed_policy_list)
 
 
-# Users, Groups and roles are simply by name versus an ARN.
-# We will take them at face value since there's no way to verify their syntax.
-# We will however check for import: values and substitute accordingly.
-def parse_imports(c, element_list):
+# We use this over users/groups/roles:
+# - Check if we have an import: syntax in use.
+# - Under a 'user' context' a local 'group' can be referenced.  If we're
+#   operating as named = false the group name won't match the template name
+#   so we need to assure we use a 'Ref' in that scenario.
+def parse_imports(c, context, element_list):
     return_list = []
     for element in element_list:
         # See if we match an import
         if re.match("^import:", element):
             m = re.match("^import:(.*)", element)
             return_list.append(ImportValue(m.group(1)))
+        # See if we match a group in the template.  If so we need to Ref()
+        # the group name for named: false to work.
+        elif c.is_local_group(element) and context == "user":
+            return_list.append(Ref(scrub_name("{}Group".format(element))))
         # Otherwise we're verbatim as there's no real way to know if this
         # is within the template or existing.
         else:
@@ -281,11 +301,11 @@ def add_managed_policy(
     if "description" in model:
         kw_args["Description"] = model["description"]
     if "groups" in model:
-        kw_args["Groups"] = parse_imports(c, model["groups"])
+        kw_args["Groups"] = parse_imports(c, "policy", model["groups"])
     if "users" in model:
-        kw_args["Users"] = parse_imports(c, model["users"])
+        kw_args["Users"] = parse_imports(c, "user", model["users"])
     if "roles" in model:
-        kw_args["Roles"] = parse_imports(c, model["roles"])
+        kw_args["Roles"] = parse_imports(c, "role", model["roles"])
 
     if "retain_on_delete" in model:
         if model["retain_on_delete"] is True:
@@ -426,7 +446,7 @@ def add_user(c, UserName, model, named=False):
         kw_args["UserName"] = UserName
 
     if "groups" in model:
-        kw_args["Groups"] = parse_imports(c, model["groups"])
+        kw_args["Groups"] = parse_imports(c, "user", model["groups"])
 
     if "managed_policies" in model:
         kw_args["ManagedPolicyArns"] = parse_managed_policies(

@@ -95,7 +95,7 @@ class config(object):
         # We permit a few special keywords to make our users lives easier.
         for pattern in pattern_list:
             found = False
-            # If our pattern is a service name or ARN (denoted by a dot or 
+            # If our pattern is a service name or ARN (denoted by a dot or
             # Colon we will not raise an exception about an invalid account
             # but we won't populate our matched list.
             if '.' in pattern or ':' in pattern:
@@ -137,6 +137,29 @@ class config(object):
         matched = list(set(matched))
 
         return(matched)
+
+    # is_local_* - template searches so we can deicde to Ref(), GetAtt() or
+    # consider a value we see as literal.
+    def is_local_user(self, user_query):
+        for user in self.config['users']:
+            if user == user_query:
+                return(True)
+
+        return(False)
+
+    def is_local_role(self, role_query):
+        for role in self.config['roles']:
+            if role == role_query:
+                return(True)
+
+        return(False)
+
+    def is_local_group(self, group_query):
+        for group in self.config['groups']:
+            if group == group_query:
+                return(True)
+
+        return(False)
 
     def is_local_managed_policy(self, managed_policy):
         if managed_policy in self.config["policies"]:
