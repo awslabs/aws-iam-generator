@@ -18,12 +18,12 @@ import json
 import os
 import subprocess
 from subprocess import PIPE
+import sys
 
 
 def run_sub_build(script, directory):
 	call=subprocess.Popen(
-		[ "python " + script ],
-        shell=True,
+		[ sys.executable, script ],
 		cwd=os.path.dirname(os.path.realpath(__file__)) + "/" + directory,
 		stdout=PIPE,
 		stderr=PIPE
