@@ -16,7 +16,7 @@
 
 import json
 import re
-from jinja2 import Template as jinja_template
+import jinja2
 from troposphere import Output, GetAtt, Ref, Export, Sub, ImportValue
 from troposphere.iam import Role, ManagedPolicy, Group, User
 from troposphere.iam import InstanceProfile, LoginProfile
@@ -34,9 +34,7 @@ def policy_document_from_jinja(c, policy_name, model):
 
     # Try and read the policy file file into a jinja template object
     try:
-        template = jinja_template(
-            open("../policy/" + model["policy_file"]).read()
-        )
+        template = jinja2.Environment(loader=jinja2.FileSystemLoader("..")).get_template("policy/" + model["policy_file"])
     except Exception as e:
         raise ValueError(
             "Failed to read template file ../policy/{}\n\n{}".format(
