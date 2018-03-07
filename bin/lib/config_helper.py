@@ -141,6 +141,8 @@ class config(object):
     # is_local_* - template searches so we can deicde to Ref(), GetAtt() or
     # consider a value we see as literal.
     def is_local_user(self, user_query):
+        if 'users' not in self.config:
+            return(False)
         for user in self.config['users']:
             if user == user_query:
                 return(True)
@@ -148,6 +150,8 @@ class config(object):
         return(False)
 
     def is_local_role(self, role_query):
+        if 'roles' not in self.config:
+            return(False)
         for role in self.config['roles']:
             if role == role_query:
                 return(True)
@@ -155,6 +159,8 @@ class config(object):
         return(False)
 
     def is_local_group(self, group_query):
+        if 'groups' not in self.config:
+            return(False)
         for group in self.config['groups']:
             if group == group_query:
                 return(True)
