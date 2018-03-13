@@ -32,8 +32,8 @@ def run_sub_build(script, directory):
 	if(call.returncode == 0):
 		return(call.stdout.read())
 	else:
-		print call.stdout.read()
-		print call.stderr.read()
+		print(call.stdout.read())
+		print(call.stderr.read())
 		raise RuntimeError("Sub build script failed")
 
 run_sub_build("iam_template_build.py", "bin")
