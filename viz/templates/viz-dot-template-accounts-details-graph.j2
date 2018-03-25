@@ -1,0 +1,50 @@
+digraph G {
+
+  graph [label="Account Details (Graph)" labelloc=t fontsize=20 fontname="Verdana" rankdir="LR"];
+  node [shape=record fontsize=10 fontname="Verdana" style="filled"];
+
+{% for account in config.get_accounts('all') %}
+
+    {{account.name}} [label="Account:\n{{account.name}}",fillcolor=orange]
+
+    {% for group in account.groups.values() %}
+
+      {{account.name}}_{{group.name}} [label="Group:\n{{group.name}}",fontcolor=white,fillcolor=red]
+      {{account.name}} -> {{account.name}}_{{group.name}}
+
+      {% for user in group.users.values() %}
+          {{account.name}}_{{user.name}} [label="User:\n{{user.name}}", fillcolor=yellow]
+          {{account.name}}_{{group.name}} -> {{account.name}}_{{user.name}}
+      {% endfor %}
+
+      {% for policy in group.policies.values() %}
+          "{{account.name}}_{{group.name}}_{{policy.name}}"
+            {% if policy.is_assume_policy() %}
+              [label="Policy (assume):\n{{policy.name}}",fontcolor=white,fillcolor= darkgreen]
+            {% else %}
+              [label="Policy:\n{{policy.name}}",fontcolor=black,fillcolor=green]
+            {% endif %}
+          "{{account.name}}_{{group.name}}" -> "{{account.name}}_{{group.name}}_{{policy.name}}"
+      {% endfor %}
+
+    {% endfor %}
+
+    {% for user in account.users.values() %}
+        {{account.name}}_{{user.name}} [label="User:\n{{user.name}}", fillcolor=yellow]
+        {{account.name}} -> {{account.name}}_{{user.name}}
+    {% endfor %}
+
+    {% for role in account.roles.values() %}
+      {{account.name}}_{{role.name}} [label="Role:\n{{role.name}}",fontcolor=white,fillcolor=blue,fontcolor=white]
+      {{account.name}} -> {{account.name}}_{{role.name}}
+
+      {% for policy in role.policies.values() %}
+          "{{account.name}}_{{role.name}}_{{policy.name}}" [label="Policy:\n{{policy.name}}", fillcolor=green]
+          "{{account.name}}_{{role.name}}" -> "{{account.name}}_{{role.name}}_{{policy.name}}"
+      {% endfor %}
+
+    {% endfor %}
+
+{% endfor %}
+
+}

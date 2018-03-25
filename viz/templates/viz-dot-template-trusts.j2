@@ -1,0 +1,19 @@
+digraph G {
+
+  graph [label="Account Trusts" labelloc=t fontsize=20 fontname="Verdana" rankdir="LR"];
+  node [shape=record fontsize=10 fontname="Verdana" style="filled"];
+
+{% for account in config.get_accounts('all') %}
+
+    "{{account.name}}" [label="Account:\n{{account.name}}",fillcolor=orange]
+
+    {% for entity_name, roles in account.trusts.items() %}
+
+      "{{entity_name}}" [label="{{entity_name}}", fillcolor=yellow]
+      "{{account.name}}" -> "{{entity_name}}"
+
+    {% endfor %}
+
+{% endfor %}
+
+}

@@ -1,0 +1,59 @@
+digraph G {
+
+  graph [label="Account Details (Records)" labelloc=t fontsize=20 fontname="Verdana" rankdir="LR"];
+  node [shape=record fontsize=10 fontname="Verdana" style="filled"];
+
+{% for account in config.get_accounts('all') %}
+
+    subgraph cluster_{{account.name}} {
+      label = "{{account.name}}"
+
+      {% for group in account.groups.values() %}
+
+        subgraph cluster_{{account.name}}_{{group.name}} {
+
+          style=filled;
+          color=red;
+          fontcolor=white;
+          label = "Group: {{group.name}}"
+
+          {{account.name}}_{{group.name}}_users [fillcolor=yellow
+          label="Users
+          {% for user in group.users.values() %}
+              | { <{{account.name}}_{{group.name}}_{{user.name}}> {{user.name}} }
+          {% endfor %}"]
+
+          {{account.name}}_{{group.name}}_policies [fillcolor=green
+          label="Policies
+          {% for policy in group.policies.values() %}
+              | { <{{account.name}}_{{group.name}}_{{policy.name}}> {{policy.name}} {% if policy.is_assume_policy() %} (assume) {% endif %} }
+          {% endfor %}"]
+
+        }
+
+      {% endfor %}
+
+      {% for role in account.roles.values() %}
+
+        subgraph cluster_{{account.name}}_{{role.name}} {
+
+          style=filled;
+          color=blue;
+          fontcolor=white;
+          label = "Role: {{role.name}}"
+
+          {{account.name}}_{{role.name}}_policies [fillcolor=green
+          label="Policies
+          {% for policy in role.policies.values() %}
+              | { <{{account.name}}_{{role.name}}_{{policy.name}}> {{policy.name}} {% if policy.is_assume_policy() %} (assume) {% endif %} }
+          {% endfor %}"]
+
+        }
+
+      {% endfor %}
+
+    }
+
+{% endfor %}
+
+}
