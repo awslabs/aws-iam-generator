@@ -12,10 +12,38 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import yaml
-from troposphere import Template, Output, Export, Sub
 import re
+import yaml
 import datetime
+import argparse
+
+from troposphere import Template, Output, Export, Sub
+
+
+def parse_cmdline():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument('-c', '--config', help='Path to config.yaml', default='./config.yaml')
+    parser.add_argument(
+        '-f',
+        '--format',
+        help='The CloudFormation format to use',
+        default='json',
+        choices=['json', 'yaml']
+    )
+    parser.add_argument(
+        '-o',
+        '--output-path',
+        help='Path into which the CloudFormation templates will be written',
+        default='./output_templates'
+    )
+    parser.add_argument(
+        '-p',
+        '--policy-path',
+        help='Path to jinja2 policy templates',
+        default='./policy'
+    )
+    args = parser.parse_args()
+    return(args)
 
 
 class config(object):

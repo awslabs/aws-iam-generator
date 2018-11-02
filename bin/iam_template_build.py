@@ -14,13 +14,15 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
-import json
 import re
+import json
+import yaml
 import jinja2
+
 from troposphere import Output, GetAtt, Ref, Export, Sub, ImportValue
 from troposphere.iam import Role, ManagedPolicy, Group, User
 from troposphere.iam import InstanceProfile, LoginProfile
-from lib.config_helper import config
+from lib.config_helper import config, parse_cmdline
 
 
 # CloudFormation names must be alphanumeric.
@@ -30,14 +32,16 @@ def scrub_name(name):
 
 
 # Creates a policy document from a jinja template
-def policy_document_from_jinja(c, policy_name, model):
+def policy_document_from_jinja(c, policy_name, model, policy_path, policy_format):
 
     # Try and read the policy file file into a jinja template object
     try:
-        template = jinja2.Environment(loader=jinja2.FileSystemLoader("..")).get_template("policy/" + model["policy_file"])
+        template = jinja2.Environment(loader=jinja2.FileSystemLoader(policy_path)) \
+                         .get_template(model["policy_file"])
     except Exception as e:
         raise ValueError(
-            "Failed to read template file ../policy/{}\n\n{}".format(
+            "Failed to read template file {}/{}\n\n{}".format(
+                policy_path,
                 model["policy_file"],
                 e
             )
@@ -57,29 +61,28 @@ def policy_document_from_jinja(c, policy_name, model):
         )
     except Exception as e:
         raise ValueError(
-            "Jinja render failure working on file ../policy/{}\n\n{}".format(
+            "Jinja render failure working on file {}/{}\n\n{}".format(
+                policy_path,
                 model["policy_file"],
                 e
             )
         )
 
-    # Now encode the jinja parsed template as JSON
+    # Now encode the jinja parsed template as JSON or YAML
     try:
-        template_json = json.loads(template_jinja)
+        doc = json.loads(template_jinja) if policy_format == 'json' else yaml.load(template_jinja)
     except Exception as e:
-        print(
-            "Contents returned after Jinja parsing:\n{}".format(
-                template_jinja
-            )
-        )
+        print("Contents returned after Jinja parsing:\n{}".format(template_jinja))
         raise ValueError(
-            "JSON encoding failure working on file ../policy/{}\n\n{}".format(
+            "{} encoding failure working on file {}/{}\n\n{}".format(
+                policy_format.upper(),
+                policy_path,
                 model["policy_file"],
                 e
             )
         )
 
-    return(template_json)
+    return(doc)
 
 
 def build_role_trust(c, trusts):
@@ -478,132 +481,143 @@ def add_user(c, UserName, model, named=False):
         ])
 
 
-try:
-    c = config("../config.yaml")
-except Exception as e:
-    raise ValueError(
-        "Failed to parse the YAML Configuration file. "
-        "Check your syntax and spacing!\n\n{}".format(e)
-    )
+def main():
+    args = parse_cmdline()
 
-# We introduced a 'global' section to control naming now that we have more
-# control over naming via Cloudformation.  To be backward compatible with
-# older config.yamls that don't have a config.yaml we'll set our values
-# to our previous implied functionality (named values for all but managed
-# policies).
-if 'global' not in c.config:
-    c.config['global'] = {
-        "names": {
-            "policies": False,
-            "roles": True,
-            "users": True,
-            "groups": True
-        },
-        "template_outputs": "enabled"
-    }
+    try:
+        c = config(args.config)
+    except Exception as e:
+        raise ValueError(
+            "Failed to parse the YAML Configuration file. "
+            "Check your syntax and spacing!\n\n{}".format(e)
+        )
 
-# Policies
-if "policies" in c.config:
-    for policy_name in c.config["policies"]:
+    # We introduced a 'global' section to control naming now that we have more
+    # control over naming via CloudFormation.  To be backward compatible with
+    # older config.yamls that don't have a config.yaml we'll set our values
+    # to our previous implied functionality (named values for all but managed
+    # policies).
+    if 'global' not in c.config:
+        c.config['global'] = {
+            "names": {
+                "policies": False,
+                "roles": True,
+                "users": True,
+                "groups": True
+            },
+            "template_outputs": "enabled"
+        }
 
-        context = ["all"]
-        if "in_accounts" in c.config["policies"][policy_name]:
-            context = c.config["policies"][policy_name]["in_accounts"]
+    # Policies
+    if "policies" in c.config:
+        for policy_name in c.config["policies"]:
 
-        for account in c.search_accounts(context):
-            c.current_account = account
-            # If our managed policy is jinja based we'll have a policy_file
-            policy_document = ""
-            if "policy_file" in c.config["policies"][policy_name]:
-                policy_document = policy_document_from_jinja(
+            context = ["all"]
+            if "in_accounts" in c.config["policies"][policy_name]:
+                context = c.config["policies"][policy_name]["in_accounts"]
+
+            for account in c.search_accounts(context):
+                c.current_account = account
+                # If our managed policy is jinja based we'll have a policy_file
+                policy_document = ""
+                if "policy_file" in c.config["policies"][policy_name]:
+                    policy_document = policy_document_from_jinja(
+                        c,
+                        policy_name,
+                        c.config["policies"][policy_name],
+                        args.policy_path,
+                        args.format
+                    )
+                # If our managed policy is generated as an assume trust
+                # we'll have assume
+                if "assume" in c.config["policies"][policy_name]:
+                    policy_document = build_assume_role_policy_document(
+                        c,
+                        c.search_accounts(
+                            c.config["policies"][policy_name]["assume"]["accounts"]
+                        ),
+                        c.config["policies"][policy_name]["assume"]["roles"]
+                    )
+
+                add_managed_policy(
                     c,
                     policy_name,
-                    c.config["policies"][policy_name]
-                )
-            # If our managed policy is generated as an assume trust
-            # we'll have assume
-            if "assume" in c.config["policies"][policy_name]:
-                policy_document = build_assume_role_policy_document(
-                    c,
-                    c.search_accounts(
-                        c.config["policies"][policy_name]["assume"]["accounts"]
-                    ),
-                    c.config["policies"][policy_name]["assume"]["roles"]
+                    policy_document,
+                    c.config["policies"][policy_name],
+                    c.config["global"]["names"]["policies"]
                 )
 
-            add_managed_policy(
-                c,
-                policy_name,
-                policy_document,
-                c.config["policies"][policy_name],
-                c.config["global"]["names"]["policies"]
-            )
+    # Roles
+    if "roles" in c.config:
+        for role_name in c.config["roles"]:
+            context = ["all"]
+            if "in_accounts" in c.config["roles"][role_name]:
+                context = c.config["roles"][role_name]["in_accounts"]
 
-# Roles
-if "roles" in c.config:
-    for role_name in c.config["roles"]:
-        context = ["all"]
-        if "in_accounts" in c.config["roles"][role_name]:
-            context = c.config["roles"][role_name]["in_accounts"]
-
-        for account in c.search_accounts(context):
-            c.current_account = account
-            add_role(
-                c,
-                role_name,
-                c.config["roles"][role_name],
-                c.config["global"]["names"]["roles"]
-            )
-
-            # See if we need to add an instance profile too with an ec2 trust.
-            if "ec2.amazonaws.com" in c.config["roles"][role_name]["trusts"]:
-                create_instance_profile(
+            for account in c.search_accounts(context):
+                c.current_account = account
+                add_role(
                     c,
                     role_name,
                     c.config["roles"][role_name],
                     c.config["global"]["names"]["roles"]
                 )
 
-# Groups
-if "groups" in c.config:
-    for group_name in c.config["groups"]:
+                # See if we need to add an instance profile too with an ec2 trust.
+                if "ec2.amazonaws.com" in c.config["roles"][role_name]["trusts"]:
+                    create_instance_profile(
+                        c,
+                        role_name,
+                        c.config["roles"][role_name],
+                        c.config["global"]["names"]["roles"]
+                    )
 
-        context = ["all"]
-        if "in_accounts" in c.config["groups"][group_name]:
-            context = c.config["groups"][group_name]["in_accounts"]
+    # Groups
+    if "groups" in c.config:
+        for group_name in c.config["groups"]:
 
-        for account in c.search_accounts(context):
-            c.current_account = account
-            add_group(
-                c,
-                group_name,
-                c.config["groups"][group_name],
-                c.config["global"]["names"]["groups"]
-            )
+            context = ["all"]
+            if "in_accounts" in c.config["groups"][group_name]:
+                context = c.config["groups"][group_name]["in_accounts"]
 
-# Users
-if "users" in c.config:
-    for user_name in c.config["users"]:
+            for account in c.search_accounts(context):
+                c.current_account = account
+                add_group(
+                    c,
+                    group_name,
+                    c.config["groups"][group_name],
+                    c.config["global"]["names"]["groups"]
+                )
 
-        context = ["all"]
-        if "in_accounts" in c.config["users"][user_name]:
-            context = c.config["users"][user_name]["in_accounts"]
+    # Users
+    if "users" in c.config:
+        for user_name in c.config["users"]:
 
-        for account in c.search_accounts(context):
-            c.current_account = account
-            add_user(
-                c,
-                user_name,
-                c.config["users"][user_name],
-                c.config["global"]["names"]["users"]
-            )
+            context = ["all"]
+            if "in_accounts" in c.config["users"][user_name]:
+                context = c.config["users"][user_name]["in_accounts"]
 
-for account in c.search_accounts(["all"]):
-    fh = open(
-        "../output_templates/"
-        + account
-        + "(" + c.account_map_ids[account]
-        + ")-IAM.template", 'w'
-    )
-    fh.write(c.template[account].to_json())
-    fh.close()
+            for account in c.search_accounts(context):
+                c.current_account = account
+                add_user(
+                    c,
+                    user_name,
+                    c.config["users"][user_name],
+                    c.config["global"]["names"]["users"]
+                )
+
+    for account in c.search_accounts(["all"]):
+        fh = open(
+            args.output_path
+            + "/" + account
+            + "(" + c.account_map_ids[account]
+            + ")-IAM.template", 'w'
+        )
+
+        data = c.template[account].to_json() if args.format == 'json' else c.template[account].to_yaml()
+        fh.write(data)
+        fh.close()
+
+
+if __name__ == '__main__':
+    main()

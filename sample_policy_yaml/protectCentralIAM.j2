@@ -1,0 +1,31 @@
+---
+Version: "2012-10-17"
+Statement:
+  - Sid: "PreventCentrallyDeployedRoleModification"
+    NotAction:
+      - "iam:Get*"
+      - "iam:List*"
+    Effect: "Deny"
+    Resource:
+    {% for role_name in config.roles %}
+      - "arn:aws:iam::*:role/{{ role_name }}"
+    {% endfor %}
+  - Sid: "PreventCentrallyDeployedPolicyModification"
+    NotAction:
+      - "iam:Get*"
+      - "iam:List*"
+      - "iam:AttachRolePolicy"
+    Effect: "Deny"
+    Resource:
+    {% for policy_name in config.policies %}
+      - "arn:aws:iam::*:policy/{{ policy_name }}"
+    {% endfor %}
+  - Sid: "PreventUserAndFederationModification"
+    Action:
+      - "iam:*OpenIDConnectProvider"
+      - "iam:*SAMLProvider"
+      - "iam:*User"
+      - "iam:*AccountPasswordPolicy"
+      - "iam:RemoveClientIDFromOpenIDConnectProvider"
+    Effect: "Deny"
+    Resource: "*"

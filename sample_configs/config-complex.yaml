@@ -16,7 +16,7 @@ accounts:
   dev2:
     id: 309876543210
   prod:
-    id: 309876543210
+    id: 209876543210
 
 policies:
   cloudFormationAdmin:
