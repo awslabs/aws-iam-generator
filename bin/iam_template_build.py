@@ -122,6 +122,11 @@ def build_role_trust(c, trusts):
             aws_principals.append(
                 GetAtt(scrub_name("{}User".format(trust)), "Arn")
             )
+        # See if this is a group inside the template
+        elif c.is_local_group(trust):
+            aws_principals.append(
+                GetAtt(scrub_name("{}Group".format(trust)), "Arn")
+            )
         # See if this is a role inside the template
         elif c.is_local_role(trust):
             aws_principals.append(
@@ -135,8 +140,8 @@ def build_role_trust(c, trusts):
                 + ":saml-provider/"
                 + c.saml_provider
             )
-        # See if we match a user or role ARN Principal
-        elif re.match("arn:aws:iam::\d{12}:(user|role)/.*?", trust) or \
+        # See if we match a user, group, or role ARN Principal
+        elif re.match("arn:aws:iam::\d{12}:(user|group|role)/.*?", trust) or \
                 re.match("arn:aws:sts::\d{12}:assumed-role/.*?/.*?", trust):
             aws_principals.append(trust)
         # See if we have a service
