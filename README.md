@@ -32,6 +32,32 @@ optional arguments:
                         Path to jinja2 policy templates (default: ./policy)
 ```
 
+## Docker Image
+
+A `Dockerfile` is provided to make this project portable.
+
+### Building the Image
+
+```shell
+docker build . -t iam_generator
+```
+
+### Running as a docker container
+
+Let's say you have a local config in `./config/iam.yml`, some policy templates in `./policy_documents`, and you want the generated CloudFormation templates to be created locally in `./cloudformation`.
+
+Here's how to run the code from the container:
+
+```shell
+docker run -ti --rm -v ${PWD}/cloudformation:/iam_generator/cloudformation \
+                    -v ${PWD}/config:/iam_generator/config \
+                    -v ${PWD}/policy_documents:/iam_generator/policy_documents \
+                    iam_generator -c config/iam.yml \
+                                  -f yaml \
+                                  -o cloudformation/ \
+                                  -p policy_documents/
+```
+
 ## General Function
 
 Everything is driven by the config.yaml file.  In this file you describe your account structure, and desired managed policies, roles, users and groups.
