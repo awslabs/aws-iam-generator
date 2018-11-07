@@ -20,7 +20,8 @@ import subprocess
 from subprocess import PIPE
 import sys
 
-sys.path.append('bin/lib')
+lib_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'bin', 'lib')
+sys.path.append(lib_dir)
 from config_helper import parse_cmdline
 
 
