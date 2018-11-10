@@ -82,7 +82,7 @@ def policy_document_from_jinja(c, policy_name, model):
     return(template_json)
 
 
-def build_role_trust(c, trusts):
+def build_role_trust(c, trusts, SamlDirect=False):
     policy = {
         "Version":  "2012-10-17",
         "Statement": [],
@@ -124,7 +124,7 @@ def build_role_trust(c, trusts):
             aws_principals.append(
                 GetAtt(scrub_name("{}Role".format(trust)), "Arn")
             )
-        # Next see if we match our SAML trust.
+        # Next see if we match our SAML trust if saml_direct: False
         elif trust == c.saml_provider:
             saml_principals.append(
                 "arn:aws:iam::"
@@ -132,6 +132,15 @@ def build_role_trust(c, trusts):
                 + ":saml-provider/"
                 + c.saml_provider
             )
+        # Check if this is a SAML Direct config (if saml_direct: True)
+        elif SamlDirect:
+            saml_principals.append(
+                "arn:aws:iam::"
+                + c.current_account_id
+                + ":saml-provider/"
+                + trust
+            )
+
         # See if we match a user or role ARN Principal
         elif re.match("arn:aws:iam::\d{12}:(user|role)/.*?", trust) or \
                 re.match("arn:aws:sts::\d{12}:assumed-role/.*?/.*?", trust):
@@ -360,11 +369,11 @@ def create_instance_profile(c, RoleName, model, named=False):
         ])
 
 
-def add_role(c, RoleName, model, named=False):
+def add_role(c, RoleName, model, named=False, SamlDirect=False ):
     cfn_name = scrub_name(RoleName + "Role")
     kw_args = {
         "Path": "/",
-        "AssumeRolePolicyDocument": build_role_trust(c, model['trusts']),
+        "AssumeRolePolicyDocument": build_role_trust(c, model['trusts'], SamlDirect),
         "ManagedPolicyArns": [],
         "Policies": []
     }
@@ -499,7 +508,8 @@ if 'global' not in c.config:
             "users": True,
             "groups": True
         },
-        "template_outputs": "enabled"
+        "template_outputs": "enabled",
+        "saml_direct": False
     }
 
 # Policies
@@ -540,7 +550,18 @@ if "policies" in c.config:
             )
 
 # Roles
+
+
+
 if "roles" in c.config:
+    # first check if this is a saml_direct config - we do it this way instead of c.config["global"]["saml_direct"] so that existing configs (pre saml_direct support) will work without error
+    saml_direct = False
+    try:
+        if c.config['global']['saml_direct'] is True:
+            saml_direct = True
+    except Exception:
+        pass
+
     for role_name in c.config["roles"]:
         context = ["all"]
         if "in_accounts" in c.config["roles"][role_name]:
@@ -548,11 +569,13 @@ if "roles" in c.config:
 
         for account in c.search_accounts(context):
             c.current_account = account
+            c.current_account_id = str(c.config['accounts'][account]['id'])
             add_role(
                 c,
                 role_name,
                 c.config["roles"][role_name],
-                c.config["global"]["names"]["roles"]
+                c.config["global"]["names"]["roles"],
+                saml_direct
             )
 
             # See if we need to add an instance profile too with an ec2 trust.

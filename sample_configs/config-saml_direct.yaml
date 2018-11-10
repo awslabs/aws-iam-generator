@@ -1,0 +1,39 @@
+global:
+  names:
+    policies: False
+    roles: True
+    users: True
+    groups: True
+  template_outputs: enabled
+  saml_direct: True 
+
+accounts:
+  payer:
+    id: 727974079150
+    saml_provider: OktaIDP
+  dev01:
+    id: 755535531790
+    saml_provider: OktaIDP
+
+roles:
+  OpsStandard:
+    trusts:
+      - OktaIDP
+    managed_policies:
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+    in_accounts:
+      - all
+  OpsAdmin:
+    trusts:
+      - OktaIDP
+    managed_policies:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    in_accounts:
+      - dev01
+  OpsOrgAdmin:
+    trusts:
+      - OktaIDP
+    managed_policies:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    in_accounts:
+      - payer

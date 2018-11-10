@@ -37,8 +37,15 @@ class config(object):
         self.account_map_names = {}
         # Our parent account.
         self.parent = ""
-        # SAML Provider
+        # SAML Provider for hub-spoke
         self.saml_provider = ""
+        # Determine if this is a hub-spoke SAML config or a SAML Direct config
+        saml_hub_spoke = True
+        try:
+            if self.config['global']['saml_direct'] is True:
+                saml_hub_spoke = False
+        except Exception:
+            pass
         for account in self.config['accounts']:
             account_id = str(self.config['accounts'][account]['id'])
             # Append to our array of account IDS:
@@ -63,19 +70,21 @@ class config(object):
                     Export=Export(Sub("${AWS::StackName}-" + "TemplateBuild"))
                 )
             ])
-            if "parent" in self.config['accounts'][account]:
-                if self.config['accounts'][account]['parent'] is True:
-                    self.parent_account = account
-                    self.parent_account_id = account_id
-                    if "saml_provider" in self.config['accounts'][account]:
-                        self.saml_provider = \
-                            self.config['accounts'][account]["saml_provider"]
-        if self.parent_account == "":
-            raise Exception(
-                "No account is marked as parent in the configuration file. "
-                "One account should have parent: true"
-            )
-
+            if saml_hub_spoke is True:
+                if "parent" in self.config['accounts'][account]:
+                    if self.config['accounts'][account]['parent'] is True:
+                        self.parent_account = account
+                        self.parent_account_id = account_id
+                        if "saml_provider" in self.config['accounts'][account]:
+                            self.saml_provider = \
+                                self.config['accounts'][account]["saml_provider"]
+        if saml_hub_spoke is True:
+            if self.parent_account == "":
+                raise Exception(
+                    "No account is marked as parent in the configuration file. "
+                    "One account should have parent: true"
+                )
+                
     # Converts between friendly names and ids for accounts.
     def map_account(self, account):
         # If our account is numeric
