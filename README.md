@@ -43,7 +43,7 @@ groups:
 
 ### `global:` section
 
-Controls our our genereated templates behaviour.  There are two key sections.  `names:` and `template_outputs`.
+Controls our our genereated templates behaviour.  There are three key sections.  `names:`, `template_outputs` and `saml_direct`.
 
 The `names:` section looks like this:
 
@@ -79,11 +79,16 @@ global:
     users: True
     groups: True
   template_outputs: enabled
+  saml_direct: False
 ```
 
 The `template_outputs:` value allows control over whether the CloudFormation templates will include Output values for the elements they create.  There is a limit in Cloudformation templates of 60 output values.  You will hit this much sooner than the 200 Resource limit.  The main reason to include an output is so it can be imported in a stack layered above.  If you don't intend on layering any stacks above this one then disabling outputs is absolutely fine.
 
 Set `template_outputs: enabled` to include template outputs.  Set `template_outputs: disabled` to disable output values for templates.
+
+The `saml_direct:` value controls wheather IAM Roles that are set up with a trust relationship to a SAML Provider represent a centralized identity account structure or an identity structure where each account is directly federated with a SAML provider. 
+
+Set `saml_direct: False` to build IAM Roles that trust a SAML provider in the designated parent account. Set `saml_direct: True` to build IAM Roles that trust a SAML provider that is provisioned in the respective account where the role is being provisioned.
 
 ### `accounts:` section
 
@@ -331,6 +336,21 @@ This will generate the following assume role policy document automatically . . .
 ```
 
 . . . and place it (along with the role definition) in the parent CloudFormation template.
+
+In cases that we have the global setting: `saml_direct: True` and a `saml_provider` in any account we can reference the `saml_provider` in that respective account.
+
+```yaml
+roles:
+  OpsOrgAdmin:
+    trusts:
+      - OktaIDP
+    managed_policies:
+      - arn:aws:iam::aws:policy/AdministratorAccess
+    in_accounts:
+      - payer
+```
+
+This will generate an assume role policy document that trusts a saml-provider in the account labeled "payer".
 
 ### `users:` section
 
