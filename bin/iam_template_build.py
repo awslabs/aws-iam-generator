@@ -30,7 +30,7 @@ def scrub_name(name):
 
 
 # Creates a policy document from a jinja template
-def policy_document_from_jinja(c, policy_name, model):
+def policy_document_from_jinja(c, policy_name, model, SamlDirect=False):
 
     # Try and read the policy file file into a jinja template object
     try:
@@ -48,20 +48,37 @@ def policy_document_from_jinja(c, policy_name, model):
     if "template_vars" in model:
         template_vars = model["template_vars"]
 
-    try:
-        template_jinja = template.render(
-            config=c.config,
-            account=c.map_account(c.current_account),
-            parent_account=c.parent_account_id,
-            template_vars=template_vars
-        )
-    except Exception as e:
-        raise ValueError(
-            "Jinja render failure working on file ../policy/{}\n\n{}".format(
-                model["policy_file"],
-                e
+    # for non SamlDirect config
+    if not SamlDirect:
+        try:
+            template_jinja = template.render(
+                config=c.config,
+                account=c.map_account(c.current_account),
+                parent_account=c.parent_account_id,
+                template_vars=template_vars
             )
-        )
+        except Exception as e:
+            raise ValueError(
+                "Jinja render failure working on file ../policy/{}\n\n{}".format(
+                    model["policy_file"],
+                    e
+                )
+            )
+    # for SamlDirect config
+    if SamlDirect:
+        try:
+            template_jinja = template.render(
+                config=c.config,
+                account=c.map_account(c.current_account),
+                template_vars=template_vars
+            )
+        except Exception as e:
+            raise ValueError(
+                "Jinja render failure working on file ../policy/{}\n\n{}".format(
+                    model["policy_file"],
+                    e
+                )
+            )
 
     # Now encode the jinja parsed template as JSON
     try:
@@ -512,6 +529,14 @@ if 'global' not in c.config:
         "saml_direct": False
     }
 
+# first check if this is a saml_direct config - we do it this way instead of c.config["global"]["saml_direct"] so that existing configs (pre saml_direct support) will work without error
+saml_direct = False
+try:
+    if c.config['global']['saml_direct'] is True:
+        saml_direct = True
+except Exception:
+    pass
+
 # Policies
 if "policies" in c.config:
     for policy_name in c.config["policies"]:
@@ -528,7 +553,8 @@ if "policies" in c.config:
                 policy_document = policy_document_from_jinja(
                     c,
                     policy_name,
-                    c.config["policies"][policy_name]
+                    c.config["policies"][policy_name],
+                    saml_direct
                 )
             # If our managed policy is generated as an assume trust
             # we'll have assume
@@ -554,14 +580,6 @@ if "policies" in c.config:
 
 
 if "roles" in c.config:
-    # first check if this is a saml_direct config - we do it this way instead of c.config["global"]["saml_direct"] so that existing configs (pre saml_direct support) will work without error
-    saml_direct = False
-    try:
-        if c.config['global']['saml_direct'] is True:
-            saml_direct = True
-    except Exception:
-        pass
-
     for role_name in c.config["roles"]:
         context = ["all"]
         if "in_accounts" in c.config["roles"][role_name]:
