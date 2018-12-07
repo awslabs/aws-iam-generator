@@ -301,7 +301,7 @@ roles:
       - all
 ```
 
-This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.
+This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.  It allows for a list of `managed_policies:` to attach to the role.
 
 The assume role policy document will be automatically generated to trust the parent:
 
@@ -406,7 +406,7 @@ users:
       - parent
 ```
 
-Our `group:` field is the name of a group.  This can be a name that already exists, or is in the config.yaml file.  Existing groups just need to be the name of the group, not an ARN.
+Our `groups:` field is the name of a group.  This can be a name that already exists, or is in the config.yaml file.  Existing groups just need to be the name of the group, not an ARN.
 
 ### `groups:` section
 
@@ -420,7 +420,7 @@ groups:
       - parent
 ```
 
-`groups:` is once again a dictionary of group names that you'd like created.  It allows for a list of `managed_policies:` to attach.  These can be either an existing managed policy arn, or the name of a policy created in the `policies:` section of the YAML.
+`groups:` is once again a dictionary of group names that you'd like created.  Each allows for a list of `managed_policies:` to attach.
 
 ### `retain_on_delete` variable
 
@@ -448,9 +448,26 @@ If this section is removed from the config.yaml, and a stack-update executed, th
 
 Default value is `retain_on_delete: false` which does not need to be explicitly declared anywhere.  This matches the default behaviour of CloudFormation.
 
+### A note about `managed_policies`
+
+For those config sections that support `managed_policies`, each entry can be an existing managed policy ARN or the name of a policy created in the `policies:` section of the YAML.  Existing ARN strings can optionally contain [AWS Pseudo Parameters](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html).  These are especially useful for account-specific customer managed policies that were created out-of-band, e.g.:
+
+```yaml
+roles:
+  NetworkAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::${AWS::AccountId}:policy/CustomerManagedPolicy
+    in_accounts:
+      - children
+```
+
 ### Importing resources from other templates
 
-You are able to specify the keyword of `import:` within the config.yaml file.  Use this for managed_policies, users, groups, or roles. This will substiute the appropraite [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
+You are able to specify the keyword of `import:` within the config.yaml file.  Use this for `managed_policies`, `users`, `groups`, or `roles`. This will substiute the appropraite [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
 
 Example of an import for a role:
 

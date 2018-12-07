@@ -222,8 +222,11 @@ def parse_managed_policies(c, managed_policies, working_on):
     managed_policy_list = []
     for managed_policy in managed_policies:
         # If we have an ARN then we're explicit
-        if re.match("arn:aws", managed_policy):
-            managed_policy_list.append(managed_policy)
+        if re.match(r"^arn:", managed_policy):
+            if re.search(r"\${[^}]+}", managed_policy):
+                managed_policy_list.append(Sub(managed_policy))
+            else:
+                managed_policy_list.append(managed_policy)
         # If we have an import: then we're importing from another template.
         elif re.match("^import:", managed_policy):
             m = re.match("^import:(.*)", managed_policy)
