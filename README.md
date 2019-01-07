@@ -1,24 +1,70 @@
 # iam_generator
+
 Generates AWS IAM Users, Groups, Roles, and Managed Policies from a YAML configuration and Jinja2 Templates
 
 ## Build Environment
 
-A Python 2.7 interpreter with the following libraries installed:
+A Python interpreter with required libraries installed. Use `pip` to install the requirements:
 
-```
-sudo pip install jinja2
-sudo pip install troposphere
+```bash
+sudo pip install -r requirements.txt
 ```
 
 **NOTE:** At present, build is tested on OSX and Linux.  Pull requests welcome for Windows build support!
+
+## Usage
+
+```bash
+$ ./build.py --help
+usage: build.py [-h] [-c CONFIG] [-f {json,yaml}] [-o OUTPUT_PATH]
+                [-p POLICY_PATH]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -c CONFIG, --config CONFIG
+                        Path to config.yaml (default: ./config.yaml)
+  -f {json,yaml}, --format {json,yaml}
+                        The CloudFormation format to use (default: json)
+  -o OUTPUT_PATH, --output-path OUTPUT_PATH
+                        Path into which the CloudFormation templates will be
+                        written (default: ./output_templates)
+  -p POLICY_PATH, --policy-path POLICY_PATH
+                        Path to jinja2 policy templates (default: ./policy)
+```
+
+## Docker Image
+
+A `Dockerfile` is provided to make this project portable.
+
+### Building the Image
+
+```shell
+docker build . -t iam_generator
+```
+
+### Running as a docker container
+
+Let's say you have a local config in `./config/iam.yml`, some policy templates in `./policy_documents`, and you want the generated CloudFormation templates to be created locally in `./cloudformation`.
+
+Here's how to run the code from the container:
+
+```shell
+docker run -ti --rm -v ${PWD}/cloudformation:/iam_generator/cloudformation \
+                    -v ${PWD}/config:/iam_generator/config \
+                    -v ${PWD}/policy_documents:/iam_generator/policy_documents \
+                    iam_generator -c config/iam.yml \
+                                  -f yaml \
+                                  -o cloudformation/ \
+                                  -p policy_documents/
+```
 
 ## General Function
 
 Everything is driven by the config.yaml file.  In this file you describe your account structure, and desired managed policies, roles, users and groups.
 
-Managed policy json structure is kept in [jinja2 templates](http://jinja.pocoo.org/docs/2.9/) files to allow for variable substitution for specific customization of ARNs and trusts etc.
+Managed policy structure (in JSON or YAML) is kept in [jinja2 templates](http://jinja.pocoo.org/docs/2.9/) files to allow for variable substitution for specific customization of ARNs and trusts etc.
 
-When build.py is executed a CloudFormation template is built per account.  They are availble in the output_templates directory to be uploaded to [CloudFormation](https://aws.amazon.com/cloudformation/) for deployment in each account.
+When build.py is executed a CloudFormation template is built per account.  They are availble in the configured `OUTPUT_PATH` directory to be uploaded to [CloudFormation](https://aws.amazon.com/cloudformation/) for deployment in each account.
 
 This project wouldn't be possible without the hard work done by the [Troposphere](https://github.com/cloudtools/troposphere) and [Jinja](https://github.com/pallets/jinja) project teams.  Thanks!
 
@@ -81,7 +127,7 @@ global:
   template_outputs: enabled
 ```
 
-The `template_outputs:` value allows control over whether the CloudFormation templates will include Output values for the elements they create.  There is a limit in Cloudformation templates of 60 output values.  You will hit this much sooner than the 200 Resource limit.  The main reason to include an output is so it can be imported in a stack layered above.  If you don't intend on layering any stacks above this one then disabling outputs is absolutely fine.
+The `template_outputs:` value allows control over whether the CloudFormation templates will include Output values for the elements they create.  There is a limit in CloudFormation templates of 60 output values.  You will hit this much sooner than the 200 Resource limit.  The main reason to include an output is so it can be imported in a stack layered above.  If you don't intend on layering any stacks above this one then disabling outputs is absolutely fine.
 
 Set `template_outputs: enabled` to include template outputs.  Set `template_outputs: disabled` to disable output values for templates.
 
@@ -141,7 +187,7 @@ Lets disect this a bit.
 
 `policies:` is a dictionary of policy names.  This assures they are kept unique within the account and generated CloudFormation template.
 
-`policy_file:` needs to be located in the `/policy/` directory, and would look something like this:
+`policy_file:` needs to be located in the configurable `POLICY_PATH` directory, and would look something like this:
 
 ```json
 {
@@ -218,20 +264,20 @@ This will create this policy document . . .
 ```json
 "Version": "2012-10-17",
 "Statement": [
-  {   
+  {
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::109876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::109876543210:role/Admin"
   },
-  {   
+  {
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::309876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::309876543210:role/Admin"
   },
-  {   
+  {
     "Action": "sts:AssumeRole",
     "Effect": "Allow",
-    "Resource": "arn:aws:iam::209876543210:role/Admin"                   
+    "Resource": "arn:aws:iam::209876543210:role/Admin"
   },
 ]
 ```
@@ -240,7 +286,7 @@ This will create this policy document . . .
 
 ### `roles:` section
 
-#### Example of a role that can be assumed from another account.
+#### Example of a role that can be assumed from another account
 
 ```yaml
 roles:
@@ -255,7 +301,7 @@ roles:
       - all
 ```
 
-This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.
+This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.  It allows for a list of `managed_policies:` to attach to the role.
 
 The assume role policy document will be automatically generated to trust the parent:
 
@@ -289,13 +335,14 @@ roles:
     in_accounts:
       - all
 ```
+
 In this case our `trusts:` is ec2.amazonaws.com.  This can be any service like config.amazonaws.com, lambda.amazonaws.com, etc.
 
 Since we're trusting ec2.amazonaws.com we will automatically create an instance profile for this role so it can be used from ec2.  No additional configuration required.
 
-#### Example of a federated role.
-In cases that we have a `saml_provider:` in our parent account we can reference it in our trust.
+#### Example of a federated role
 
+In cases that we have a `saml_provider:` in our parent account we can reference it in our trust.
 
 ```yaml
 roles:
@@ -334,7 +381,7 @@ This will generate the following assume role policy document automatically . . .
 
 ### `users:` section
 
-#### An example of a user that is not a member of a group, and has a managed_policy directly attached.
+#### An example of a user that is not a member of a group, and has a managed_policy directly attached
 
 ```yaml
 users:
@@ -345,6 +392,7 @@ users:
     in_accounts:
       - parent
 ```
+
 Optionally specify a `password:` for the user.  The flag is set to force a password change at first login.  The password is clear text, so be careful!
 
 #### An example of a user as a member of groups
@@ -358,7 +406,7 @@ users:
       - parent
 ```
 
-Our `group:` field is the name of a group.  This can be a name that already exists, or is in the config.yaml file.  Existing groups just need to be the name of the group, not an ARN.
+Our `groups:` field is the name of a group.  This can be a name that already exists, or is in the config.yaml file.  Existing groups just need to be the name of the group, not an ARN.
 
 ### `groups:` section
 
@@ -372,7 +420,7 @@ groups:
       - parent
 ```
 
-`groups:` is once again a dictionary of group names that you'd like created.  It allows for a list of `managed_policies:` to attach.  These can be either an existing managed policy arn, or the name of a policy created in the `policies:` section of the YAML.
+`groups:` is once again a dictionary of group names that you'd like created.  Each allows for a list of `managed_policies:` to attach.
 
 ### `retain_on_delete` variable
 
@@ -400,9 +448,26 @@ If this section is removed from the config.yaml, and a stack-update executed, th
 
 Default value is `retain_on_delete: false` which does not need to be explicitly declared anywhere.  This matches the default behaviour of CloudFormation.
 
+### A note about `managed_policies`
+
+For those config sections that support `managed_policies`, each entry can be an existing managed policy ARN or the name of a policy created in the `policies:` section of the YAML.  Existing ARN strings can optionally contain [AWS Pseudo Parameters](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/pseudo-parameter-reference.html).  These are especially useful for account-specific customer managed policies that were created out-of-band, e.g.:
+
+```yaml
+roles:
+  NetworkAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - arn:aws:iam::${AWS::AccountId}:policy/CustomerManagedPolicy
+    in_accounts:
+      - children
+```
+
 ### Importing resources from other templates
 
-You are able to specify the keyword of `import:` within the config.yaml file.  Use this for managed_policies, users, groups, or roles. This will substiute the appropraite [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
+You are able to specify the keyword of `import:` within the config.yaml file.  Use this for `managed_policies`, `users`, `groups`, or `roles`. This will substiute the appropraite [Fn:ImportValue](http://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/intrinsic-function-reference-importvalue.html) within the template to import from an existing CloudFormation templates Exports.
 
 Example of an import for a role:
 

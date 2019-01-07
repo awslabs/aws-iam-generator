@@ -2,3 +2,5 @@ config.yaml
 *.template
 *.pyc
 policy/*.j2
+.vscode
+test_output_templates/

@@ -1,0 +1,20 @@
+---
+Version: "2012-10-17"
+Statement:
+  - Sid: "CloudFormationAdmin"
+    Effect: "Allow"
+    Action:
+      - "cloudformation:*"
+    Resource: "*"
+  - Effect: "Allow"
+    Action:
+      - "s3:ListBucket"
+    Resource:
+      - "arn:aws:s3:::{{ template_vars.cloudformation_bucket }}"
+  - Effect: "Allow"
+    Action:
+      - "s3:PutObject"
+      - "s3:GetObject"
+      - "s3:DeleteObject"
+    Resource:
+      - "arn:aws:s3:::{{ template_vars.cloudformation_bucket }}/*"
