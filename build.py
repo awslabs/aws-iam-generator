@@ -42,15 +42,13 @@ def run_sub_build(script, directory):
 	call = subprocess.Popen(
 		cmd,
 		cwd=os.path.dirname(os.path.realpath(__file__)) + "/" + directory,
-		stdout=PIPE,
-		stderr=PIPE
+		stdout=PIPE
 	)
 	call.wait()
 	if call.returncode == 0:
 		return(call.stdout.read())
 	else:
 		print(call.stdout.read())
-		print(call.stderr.read())
 		raise RuntimeError("Sub build script failed")
 
 if __name__ == '__main__':

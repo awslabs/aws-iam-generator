@@ -85,7 +85,7 @@ def policy_document_from_jinja(c, policy_name, model, policy_path, policy_format
     return(doc)
 
 
-def build_role_trust(c, trusts):
+def build_role_trust(c, model):
     policy = {
         "Version":  "2012-10-17",
         "Statement": [],
@@ -97,6 +97,8 @@ def build_role_trust(c, trusts):
         "graph.facebook.com",
         "accounts.google.com",
     ]
+
+    trusts = model['trusts']
 
     service_principals = []
     aws_principals = []
@@ -188,6 +190,10 @@ def build_role_trust(c, trusts):
             "Principal": {"Federated": web_principals},
             "Action": "sts:AssumeRoleWithWebIdentity"
         })
+
+    if "condition" in model:
+        for statement in policy["Statement"]:
+            statement["Condition"] = model["condition"]
 
     return(policy)
 
@@ -375,7 +381,7 @@ def add_role(c, RoleName, model, named=False):
     cfn_name = scrub_name(RoleName + "Role")
     kw_args = {
         "Path": "/",
-        "AssumeRolePolicyDocument": build_role_trust(c, model['trusts']),
+        "AssumeRolePolicyDocument": build_role_trust(c, model),
         "ManagedPolicyArns": [],
         "Policies": []
     }
