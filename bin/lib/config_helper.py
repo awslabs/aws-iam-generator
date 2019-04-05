@@ -37,6 +37,11 @@ def parse_cmdline():
         default='./output_templates'
     )
     parser.add_argument(
+        '--output-path-template',
+        help="Output path template, rendered using Jinja.",
+        default="{{ output_path }}/{{ account }}({{ account_id }})-IAM.template"
+    )
+    parser.add_argument(
         '-p',
         '--policy-path',
         help='Path to jinja2 policy templates',

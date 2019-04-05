@@ -14,6 +14,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
+import os
 import re
 import json
 import yaml
@@ -495,9 +496,7 @@ def add_user(c, UserName, model, named=False):
         ])
 
 
-def main():
-    args = parse_cmdline()
-
+def main(args):
     try:
         c = config(args.config)
     except Exception as e:
@@ -621,17 +620,19 @@ def main():
                 )
 
     for account in c.search_accounts(["all"]):
-        fh = open(
-            args.output_path
-            + "/" + account
-            + "(" + c.account_map_ids[account]
-            + ")-IAM.template", 'w'
-        )
 
-        data = c.template[account].to_json() if args.format == 'json' else c.template[account].to_yaml()
-        fh.write(data)
-        fh.close()
+        output_fullname = jinja2.Template(args.output_path_template).render(output_path=args.output_path,
+                                                                            account=account,
+                                                                            account_id=c.account_map_ids[account])
+
+        # Ensure output directories exist, as the template may contain any level of directories.
+        os.makedirs(os.path.dirname(output_fullname), exist_ok=True)
+
+        with open(output_fullname, 'w') as fh:
+            data = c.template[account].to_json() if args.format == 'json' else c.template[account].to_yaml()
+            fh.write(data)
 
 
 if __name__ == '__main__':
-    main()
+    args = parse_cmdline()
+    main(args)

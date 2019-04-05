@@ -20,36 +20,14 @@ import subprocess
 from subprocess import PIPE
 import sys
 
+bin_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'bin')
 lib_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'bin', 'lib')
 sys.path.append(lib_dir)
+sys.path.append(bin_dir)
+
 from config_helper import parse_cmdline
-
-
-def run_sub_build(script, directory):
-	args = parse_cmdline()
-	cmd = [
-		sys.executable,
-		script,
-		'-c',
-		os.path.realpath(args.config),
-		'-f',
-		args.format,
-		'-o',
-		os.path.realpath(args.output_path),
-		'-p',
-		os.path.realpath(args.policy_path)
-	]
-	call = subprocess.Popen(
-		cmd,
-		cwd=os.path.dirname(os.path.realpath(__file__)) + "/" + directory,
-		stdout=PIPE
-	)
-	call.wait()
-	if call.returncode == 0:
-		return(call.stdout.read())
-	else:
-		print(call.stdout.read())
-		raise RuntimeError("Sub build script failed")
+from iam_template_build import main
 
 if __name__ == '__main__':
-	run_sub_build("iam_template_build.py", "bin")
+	args = parse_cmdline()
+	main(args)
