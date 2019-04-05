@@ -56,7 +56,7 @@ class config(object):
     # Read our config file and build a few helper constructs from it.
     def __init__(self, config_file):
         # Read our YAML
-        self.config = yaml.load(open(config_file).read())
+        self.config = yaml.full_load(open(config_file).read())
         # We will use our current timestamp in UTC as our build version
         self.build_version = \
             datetime.datetime.utcnow().strftime("%Y-%m-%dZ%H:%M:%S")

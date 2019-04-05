@@ -71,7 +71,7 @@ def policy_document_from_jinja(c, policy_name, model, policy_path, policy_format
 
     # Now encode the jinja parsed template as JSON or YAML
     try:
-        doc = json.loads(template_jinja) if policy_format == 'json' else yaml.load(template_jinja)
+        doc = json.loads(template_jinja) if policy_format == 'json' else yaml.full_load(template_jinja)
     except Exception as e:
         print("Contents returned after Jinja parsing:\n{}".format(template_jinja))
         raise ValueError(
