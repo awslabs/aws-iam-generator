@@ -398,6 +398,9 @@ def add_role(c, RoleName, model, named=False):
         if model["retain_on_delete"] is True:
             kw_args["DeletionPolicy"] = "Retain"
 
+    if "max_session_duration" in model:
+        kw_args["MaxSessionDuration"] = model["max_session_duration"]
+
     c.template[c.current_account].add_resource(Role(
         cfn_name,
         **kw_args
