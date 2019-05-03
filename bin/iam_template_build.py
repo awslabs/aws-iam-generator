@@ -14,6 +14,7 @@
 # CONDITIONS OF ANY KIND, either express or implied. See the License for the
 # specific language governing permissions and limitations under the License.
 
+import os
 import re
 import json
 import yaml
@@ -70,7 +71,7 @@ def policy_document_from_jinja(c, policy_name, model, policy_path, policy_format
 
     # Now encode the jinja parsed template as JSON or YAML
     try:
-        doc = json.loads(template_jinja) if policy_format == 'json' else yaml.load(template_jinja)
+        doc = json.loads(template_jinja) if policy_format == 'json' else yaml.full_load(template_jinja)
     except Exception as e:
         print("Contents returned after Jinja parsing:\n{}".format(template_jinja))
         raise ValueError(
@@ -85,7 +86,7 @@ def policy_document_from_jinja(c, policy_name, model, policy_path, policy_format
     return(doc)
 
 
-def build_role_trust(c, trusts):
+def build_role_trust(c, model):
     policy = {
         "Version":  "2012-10-17",
         "Statement": [],
@@ -97,6 +98,8 @@ def build_role_trust(c, trusts):
         "graph.facebook.com",
         "accounts.google.com",
     ]
+
+    trusts = model['trusts']
 
     service_principals = []
     aws_principals = []
@@ -188,6 +191,10 @@ def build_role_trust(c, trusts):
             "Principal": {"Federated": web_principals},
             "Action": "sts:AssumeRoleWithWebIdentity"
         })
+
+    if "condition" in model:
+        for statement in policy["Statement"]:
+            statement["Condition"] = model["condition"]
 
     return(policy)
 
@@ -375,7 +382,7 @@ def add_role(c, RoleName, model, named=False):
     cfn_name = scrub_name(RoleName + "Role")
     kw_args = {
         "Path": "/",
-        "AssumeRolePolicyDocument": build_role_trust(c, model['trusts']),
+        "AssumeRolePolicyDocument": build_role_trust(c, model),
         "ManagedPolicyArns": [],
         "Policies": []
     }
@@ -390,6 +397,9 @@ def add_role(c, RoleName, model, named=False):
     if "retain_on_delete" in model:
         if model["retain_on_delete"] is True:
             kw_args["DeletionPolicy"] = "Retain"
+
+    if "max_session_duration" in model:
+        kw_args["MaxSessionDuration"] = model["max_session_duration"]
 
     c.template[c.current_account].add_resource(Role(
         cfn_name,
@@ -489,9 +499,7 @@ def add_user(c, UserName, model, named=False):
         ])
 
 
-def main():
-    args = parse_cmdline()
-
+def main(args):
     try:
         c = config(args.config)
     except Exception as e:
@@ -615,17 +623,19 @@ def main():
                 )
 
     for account in c.search_accounts(["all"]):
-        fh = open(
-            args.output_path
-            + "/" + account
-            + "(" + c.account_map_ids[account]
-            + ")-IAM.template", 'w'
-        )
 
-        data = c.template[account].to_json() if args.format == 'json' else c.template[account].to_yaml()
-        fh.write(data)
-        fh.close()
+        output_fullname = jinja2.Template(args.output_path_template).render(output_path=args.output_path,
+                                                                            account=account,
+                                                                            account_id=c.account_map_ids[account])
+
+        # Ensure output directories exist, as the template may contain any level of directories.
+        os.makedirs(os.path.dirname(output_fullname), exist_ok=True)
+
+        with open(output_fullname, 'w') as fh:
+            data = c.template[account].to_json() if args.format == 'json' else c.template[account].to_yaml()
+            fh.write(data)
 
 
 if __name__ == '__main__':
-    main()
+    args = parse_cmdline()
+    main(args)

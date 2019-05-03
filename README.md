@@ -320,6 +320,49 @@ The assume role policy document will be automatically generated to trust the par
 }
 ```
 
+#### Max Session Duration
+
+The [max session duration](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use.html) for a role can be set 
+by adding the `max_session_duration` key to the role:
+
+```yaml
+roles:
+  NetworkAdmin:
+    trusts:
+      - ...
+    managed_policies:
+      - ...
+    in_accounts:
+      - ...
+    max_session_duration: 7200
+```
+
+
+#### Conditions 
+
+Conditions can be added to restrict under what circumstances a role may be assumed. 
+For example, to require [Multi Factor Authentication](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_mfa_configure-api-require.html#MFAProtectedAPI-cross-account-delegation)
+for a user to be able to assume a role:
+
+```yaml
+roles:
+  NetworkAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - cloudFormationAdmin
+    in_accounts:
+      - all
+    condition:
+      Bool:
+        aws:MultiFactorAuthPresent:
+          true
+```
+
+This will add a Condition element to the assume role policy document in all accounts.
+ 
 #### Example of an ec2 role
 
 ```yaml
