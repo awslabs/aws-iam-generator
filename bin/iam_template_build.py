@@ -180,6 +180,11 @@ def build_role_trust(c, trusts):
             "Effect": "Allow",
             "Principal": {"Federated": saml_principals},
             "Action": "sts:AssumeRoleWithSAML",
+            "Condition": {
+                "StringEquals": {
+                   "SAML:aud": "https://signin.aws.amazon.com/saml"
+                }
+            }
         })
 
     if web_principals:
