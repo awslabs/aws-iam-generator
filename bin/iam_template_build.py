@@ -387,6 +387,9 @@ def add_role(c, RoleName, model, named=False):
         kw_args["ManagedPolicyArns"] = parse_managed_policies(
                                         c, model["managed_policies"], RoleName)
 
+    if "max_role_duration" in model:
+        kw_args['MaxSessionDuration'] = int(model["max_role_duration"])
+
     if "retain_on_delete" in model:
         if model["retain_on_delete"] is True:
             kw_args["DeletionPolicy"] = "Retain"
