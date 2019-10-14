@@ -299,9 +299,10 @@ roles:
       - cloudFormationAdmin
     in_accounts:
       - all
+    max_role_duration: 3600
 ```
 
-This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.  It allows for a list of `managed_policies:` to attach to the role.
+This will create a role called NetworkAdmin.  It will have two AWS managed policies, and one policy referenced from the `policies:` section of the config.yaml.  It allows for a list of `managed_policies:` to attach to the role. It has a MaxSessionDuration of 1 hour.
 
 The assume role policy document will be automatically generated to trust the parent:
 
