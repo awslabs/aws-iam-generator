@@ -52,7 +52,7 @@ class config(object):
     def __init__(self, config_file):
         # Read our YAML
         with open(config_file, 'r') as stream:
-            self.config = yaml.safe_load(stream)
+          self.config = yaml.load(stream, Loader=yaml.FullLoader)
         # We will use our current timestamp in UTC as our build version
         self.build_version = \
             datetime.datetime.utcnow().strftime("%Y-%m-%dZ%H:%M:%S")
