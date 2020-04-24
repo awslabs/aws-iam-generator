@@ -36,7 +36,7 @@ test_yaml() {
 }
 
 mkdir -p ${TESTDIR}
-test_json
+# test_json
 test_yaml
 cleanup
 

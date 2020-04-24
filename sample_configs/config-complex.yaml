@@ -19,6 +19,9 @@ accounts:
     id: 209876543210
 
 policies:
+  testBoundary:
+    description: A permissions boundary managed policy
+    policy_file: permissionsBoundary.j2
   cloudFormationAdmin:
     description: CloudFormation Administrator
     policy_file: cloudFormationAdmin.j2
@@ -134,6 +137,7 @@ roles:
       - restrictedSubnets
     in_accounts:
       - all
+    permissions_boundary: testBoundary
 
   AdminRole:
     trusts:
@@ -142,6 +146,7 @@ roles:
       - arn:aws:iam::aws:policy/AdministratorAccess
     in_accounts:
       - all
+    permissions_boundary: arn:aws:iam::aws:policy/TestBoundary
 
   NetworkAdmin:
     trusts:
