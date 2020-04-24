@@ -1,7 +1,7 @@
 ---
 Version: "2012-10-17"
 Statement:
-  - Sid: "UserIAMGrants"
+  - Sid: "PermissionsBoundaryPolicyOnlyUsableIfBoundaryIsAttached"
     Effect: "Allow"
     Action:
       - "iam:AddRoleToInstanceProfile"
@@ -10,4 +10,4 @@ Statement:
     Resource: "*"
     Condition:
       StringEquals:
-        "iam:PermissionsBoundary": "arn:aws:iam::{{ account }}:policy/bla"
+        "iam:PermissionsBoundary": "arn:aws:iam::{{ account }}:policy/TestBoundaryName"
