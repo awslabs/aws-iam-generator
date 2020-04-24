@@ -377,8 +377,29 @@ This will generate the following assume role policy document automatically . . .
   ]
 }
 ```
-
 . . . and place it (along with the role definition) in the parent CloudFormation template.
+
+#### Example of a role with a permission boundary
+
+```yaml
+roles:
+  NetworkAdmin:
+    trusts:
+      - parent
+    managed_policies:
+      - arn:aws:iam::aws:policy/job-function/NetworkAdministrator
+      - arn:aws:iam::aws:policy/ReadOnlyAccess
+      - cloudFormationAdmin
+    permissions_boundary: developerBoundary
+    in_accounts:
+      - all
+    max_role_duration: 3600
+```
+
+As above if will create it will create a role called NetworkAdmin. But now it will also add an IAM Permissions Boundary
+which limits the permissions granted to a user with that role to what boundaries are set in the `developerBoundary`
+manage policy. You can also provide an ARN directly.
+
 
 ### `users:` section
 
