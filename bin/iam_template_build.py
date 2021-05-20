@@ -270,6 +270,53 @@ def parse_managed_policies(c, managed_policies, working_on):
     return(managed_policy_list)
 
 
+# Permissions boundaries are similar to managed policies in handling
+# except they are provided as a single string value instead of a list
+# Otherwise, same rules as above
+# was easier to add another method than refactor the one for managed policies
+def parse_permissions_boundary(c, permissions_boundary, working_on):
+    # If we have an ARN then we're explicit
+    if re.match(r"^arn:", permissions_boundary):
+        if re.search(r"\${[^}]+}", permissions_boundary):
+            return Sub(permissions_boundary)
+        else:
+            return permissions_boundary
+    # If we have an import: then we're importing from another template.
+    elif re.match("^import:", permissions_boundary):
+        m = re.match("^import:(.*)", permissions_boundary)
+        return ImportValue(m.group(1))
+    # Alternately we're dealing with a managed policy locally that
+    # we need to 'Ref' to get an ARN.
+    else:
+        # Confirm this is a local policy, otherwise we'll error out.
+        if c.is_local_managed_policy(permissions_boundary):
+            # Policy name exists in the template,
+            # lets make sure it will exist in this account.
+            if c.is_managed_policy_in_account(
+                    permissions_boundary,
+                    c.map_account(c.current_account)
+            ):
+                # If this is a ref we'll need to assure it's scrubbed
+                return Ref(scrub_name(permissions_boundary))
+            else:
+                raise ValueError(
+                    "Working on: '{}' - Managed Policy: '{}' "
+                    "is not configured to go into account: '{}'".format(
+                        working_on,
+                        permissions_boundary,
+                        c.current_account
+                    )
+                )
+        else:
+            raise ValueError(
+                "Working on: '{}' - Managed Policy: '{}' "
+                "does not exist in the configuration file".format(
+                    working_on,
+                    permissions_boundary
+                )
+            )
+
+
 # We use this over users/groups/roles:
 # - Check if we have an import: syntax in use.
 # - Under a 'user' context' a local 'group' can be referenced.  If we're
@@ -391,6 +438,10 @@ def add_role(c, RoleName, model, named=False):
     if "managed_policies" in model:
         kw_args["ManagedPolicyArns"] = parse_managed_policies(
                                         c, model["managed_policies"], RoleName)
+
+    if "permissions_boundary" in model:
+        kw_args["PermissionsBoundary"] = parse_permissions_boundary(
+            c, model["permissions_boundary"], RoleName)
 
     if "max_role_duration" in model:
         kw_args['MaxSessionDuration'] = int(model["max_role_duration"])

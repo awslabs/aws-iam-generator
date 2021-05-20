@@ -1,0 +1,23 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "PermissionsBoundaryPolicyOnlyUsableIfBoundaryIsAttached",
+			"Effect": "Allow",
+			"Action": [
+				"iam:AddRoleToInstanceProfile",
+				"iam:List*",
+				"iam:PassRole"
+			],
+			"Resource": [
+				"arn:aws:lambda:*:*:function:{{ template_vars.shared_services_prefix }}*"
+			],
+			"Condition": {
+                "StringEquals": {
+					"iam:PermissionsBoundary": "arn:aws:iam::{{ account }}:policy/TestBoundaryName"
+                }
+            }
+
+		}
+	]
+}
