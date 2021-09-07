@@ -89,7 +89,7 @@ groups:
 
 ### `global:` section
 
-Controls our our genereated templates behaviour.  There are two key sections.  `names:` and `template_outputs`.
+Controls our our generated templates behaviour.  There are two key sections.  `names:` and `template_outputs`.
 
 The `names:` section looks like this:
 
